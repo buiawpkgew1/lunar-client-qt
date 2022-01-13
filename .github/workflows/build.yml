@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [ macostest ]
+    branches: [ master ]
   pull_request:
-    branches: [ macostest ]
+    branches: [ master ]
   workflow_dispatch:
 
 env:
@@ -68,38 +68,3 @@ jobs:
       with:
         name: windows
         path: ${{github.workspace}}/build/deps/
-  build_mac:
-    name: "MacOS Build"
-    runs-on: macos-11
-    
-    steps:
-      - uses: actions/checkout@v2
-      
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v2
-        with:
-          version: '5.15.2'
-          host: 'mac'
-          target: 'desktop'
-          arch: 'clang_64'
-          install-deps: 'true'
-          setup-python: 'false'
-        
-      - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-
-      - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: make
-        
-      - name: Package Dependencies
-        working-directory: ${{github.workspace}}/build
-        run: |
-          mkdir with_deps
-          mv lunar-client-qt with_deps/
-          macdeployqt with_deps/
-          
-      - uses: actions/upload-artifact@v2
-        with:
-          name: mac
-          path: ${{github.workspace}}/build/with_deps/

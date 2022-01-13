@@ -19,7 +19,7 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(40);
 
-    keepMemorySame = new QCheckBox(QStringLiteral("Keep initial and maximum memory allocations the same"));
+    keepMemorySame = new QCheckBox(QStringLiteral("保持初始和最大内存分配相同保持初始和最大内存分配相同"));
 
     QLabel* initialMemoryLabel = new QLabel();
     initialMemory = new QSlider(Qt::Horizontal);
@@ -34,8 +34,8 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
     maxMemory->setPageStep(1024);
 
     //Memory slider functionality
-    connect(initialMemory, &QSlider::valueChanged, [initialMemoryLabel](int val){initialMemoryLabel->setText("Initial Memory:  " + QString::number(val) + " MiB");});
-    connect(maxMemory, &QSlider::valueChanged, [maxMemoryLabel](int val){maxMemoryLabel->setText("Maximum Memory:  " + QString::number(val) + " MiB");});
+    connect(initialMemory, &QSlider::valueChanged, [initialMemoryLabel](int val){initialMemoryLabel->setText("初始记忆:  " + QString::number(val) + " MiB");});
+    connect(maxMemory, &QSlider::valueChanged, [maxMemoryLabel](int val){maxMemoryLabel->setText("最大内存:  " + QString::number(val) + " MiB");});
 
     connect(keepMemorySame, &QCheckBox::toggled, this, &GeneralPage::keepMinMaxSameChanged);
 
@@ -50,7 +50,7 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
     memorySliderContainer->addWidget(maxMemory);
 
     //Custom jre checkbox lineedit and button
-    useCustomJre = new QCheckBox(QStringLiteral("Use Custom JRE"));
+    useCustomJre = new QCheckBox(QStringLiteral("使用自定义 JRE"));
     jrePath = new FileChooser(QFileDialog::ExistingFile);
 
     //Jvm arguments
@@ -59,14 +59,14 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
 
     jvmArgs = new QPlainTextEdit();
 
-    jvmArgsGroup->addWidget(new QLabel(QStringLiteral("JVM Arguments")), 0, Qt::AlignHCenter);
+    jvmArgsGroup->addWidget(new QLabel(QStringLiteral("JVM 参数")), 0, Qt::AlignHCenter);
     jvmArgsGroup->addWidget(jvmArgs);
 
     //Checkboxes
-    QGroupBox* groupBox = new QGroupBox(QStringLiteral("After Launch"));
+    QGroupBox* groupBox = new QGroupBox(QStringLiteral("启动后"));
 
-    QRadioButton* stayOpen = new QRadioButton(QStringLiteral("Keep Launcher Open"));
-    closeOnLaunch = new QRadioButton(QStringLiteral("Close Launcher"));
+    QRadioButton* stayOpen = new QRadioButton(QStringLiteral("保持启动器打开"));
+    closeOnLaunch = new QRadioButton(QStringLiteral("关闭启动器"));
     stayOpen->setChecked(true);
 
     QVBoxLayout* radioLayout = new QVBoxLayout();

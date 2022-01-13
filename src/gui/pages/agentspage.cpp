@@ -25,10 +25,10 @@ AgentsPage::AgentsPage(Config& config, QWidget *parent) : ConfigurationPage(conf
     palette.setColor(QPalette::Disabled, QPalette::Text, Qt::blue);
     agents->setPalette(palette);
 
-    QPushButton* add = new QPushButton(QStringLiteral("Add"));
-    QPushButton* remove = new QPushButton(QStringLiteral("Remove"));
-    QPushButton* moveUp = new QPushButton(QStringLiteral("Move Up"));
-    QPushButton* moveDown = new QPushButton(QStringLiteral("Move Down"));
+    QPushButton* add = new QPushButton(QStringLiteral("添加"));
+    QPushButton* remove = new QPushButton(QStringLiteral("移除"));
+    QPushButton* moveUp = new QPushButton(QStringLiteral("上移"));
+    QPushButton* moveDown = new QPushButton(QStringLiteral("下移"));
 
     connect(add, &QPushButton::clicked, [this](){
         QStringList files = QFileDialog::getOpenFileNames(

@@ -1,3 +1,4 @@
+[![Build](https://github.com/buiawpkgew1/lunar-client-qt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/buiawpkgew1/lunar-client-qt/actions/workflows/build.yml)
 # Lunar Client Qt
 Lunar Client Qt is a lightweight launcher for lunar client written in C++ using the Qt framework.  
   

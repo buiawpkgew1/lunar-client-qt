@@ -42,13 +42,13 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
       
-    - name: Replace Default Mingw
+    - name: 替换默认 Mingw
       shell: bash
       run: |
         choco uninstall mingw --force
         echo "$IQTA_TOOLS/mingw810_64/bin" >> $GITHUB_PATH 
       
-    - name: Package Dependencies
+    - name: 包依赖
       shell: bash
       working-directory: ${{github.workspace}}/build
       run: |
@@ -57,12 +57,12 @@ jobs:
         mkdir with_deps
         mv lunar-client-qt.exe with_deps/
         windeployqt deps/ --compiler-runtime --no-angle --no-opengl-sw --no-virtualkeyboard --no-webkit2 --no-system-d3d-compiler --no-translations --no-quick-import
-    - name: Check mingw g++ version
+    - name: 检查 mingw g++ 版本
       run: |
         Write-Output (Get-Command g++.exe).Path
         echo $env:PATH
         g++.exe --version     
-    - name: Upload Artifiact
+    - name: 上传工件
       uses: actions/upload-artifact@v2
       with:
         name: windows
@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Install Qt
+      - name: 安装 Qt
         uses: jurplel/install-qt-action@v2
         with:
           version: '5.15.2'
@@ -84,14 +84,14 @@ jobs:
           install-deps: 'true'
           setup-python: 'false'
         
-      - name: Configure CMake
+      - name: 配置 CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
         working-directory: ${{github.workspace}}/build
         run: make
         
-      - name: Package Dependencies
+      - name: 包依赖
         working-directory: ${{github.workspace}}/build
         run: |
           mkdir with_deps

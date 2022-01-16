@@ -34,7 +34,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
     pages = {
         new GeneralPage(config),
         new MinecraftPage(config),
-        new AgentsPage(config)
+        new AgentsPage(config),
+        new HelpersPage(config)
     };
 
     foreach(ConfigurationPage* page, pages){
@@ -55,17 +56,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
     versionSelect = new QComboBox();
     versionSelect->addItems({"1.7", "1.8", "1.12", "1.16", "1.17", "1.18"});
 
-    launchUnlockedCosmeticsButton = new QPushButton;
-    launchUnlockedCosmeticsButton->setMinimumHeight(45);
-    connect(launchUnlockedCosmeticsButton, &QPushButton::pressed, this, &MainWindow::launchUnlockedCosmetics);
-
-    launchNoCosmeticsButton = new QPushButton();
-    launchNoCosmeticsButton->setMinimumHeight(45);
-    connect(launchNoCosmeticsButton, &QPushButton::pressed, this, &MainWindow::launchNoCosmetics);
-
     launchButton = new QPushButton();
-    launchButton->setMinimumHeight(45);
-    connect(launchButton, &QPushButton::pressed, this, &MainWindow::launchDefault);
+    launchButton->setMinimumHeight(80);
+    connect(launchButton, &QPushButton::pressed, this, &MainWindow::launch);
 
     connect(&offlineLauncher, &OfflineLauncher::error, this, &MainWindow::errorCallback);
 
@@ -73,8 +66,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
 
     mainLayout->addWidget(pageList);
     mainLayout->addWidget(versionSelect, 1, 0);
-    mainLayout->addWidget(launchUnlockedCosmeticsButton, 2, 0);
-    mainLayout->addWidget(launchNoCosmeticsButton, 3, 0);
     mainLayout->addWidget(launchButton, 4, 0);
     mainLayout->addWidget(pageStack, 0, 3, -1, 1);
 
@@ -87,33 +78,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
 }
 
 void MainWindow::resetLaunchButtons() {
-    launchUnlockedCosmeticsButton->setEnabled(true);
-    launchUnlockedCosmeticsButton->setText(QStringLiteral("启动全部\n化妆品"));
-
     launchButton->setEnabled(true);
-    launchButton->setText(QStringLiteral("发射"));
-
-    launchNoCosmeticsButton->setEnabled(true);
-    launchNoCosmeticsButton->setText(QStringLiteral("不使用化妆品启动"));
-}
-
-void MainWindow::launchNoCosmetics() {
-    launch(offlineLauncher, Launcher::CosmeticsState::OFF);
+    launchButton->setText(QStringLiteral("启动"));
 }
 
 
-void MainWindow::launchDefault() {
-    launch(offlineLauncher, Launcher::CosmeticsState::DEFAULT);
-}
-
-void MainWindow::launchUnlockedCosmetics() {
-    launch(offlineLauncher, Launcher::CosmeticsState::UNLOCKED);
-}
-
-
-void MainWindow::launch(Launcher& launcher, Launcher::CosmeticsState cosmeticsState){
+void MainWindow::launch(){
     apply();
-    launcher.launch(cosmeticsState);
+    offlineLauncher.launch();
     if(config.closeOnLaunch)
         close();
 }

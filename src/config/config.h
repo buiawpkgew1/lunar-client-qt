@@ -43,8 +43,11 @@ public:
     int windowWidth;
     int windowHeight;
 
+    bool useCosmetics;
+    bool unlockCosmetics;
 
     QStringList agents;
+    QStringList helpers;
 public:
     void save();
     static Config load();

@@ -6,6 +6,7 @@
 
 #include <QStandardPaths>
 #include <QJsonObject>
+#include <QProcess>
 #include <QJsonArray>
 #include <QFileInfo>
 #include <QDir>
@@ -45,9 +46,11 @@ void Config::save() {
     saveObj["useAutoggMessage"] = useAutoggMessage;
     saveObj["autoggMessage"] = autoggMessage;
 
+    saveObj["useCosmetics"] = useCosmetics;
+    saveObj["unlockCosmetics"] = unlockCosmetics;
+
     saveObj["windowWidth"] = windowWidth;
     saveObj["windowHeight"] = windowHeight;
-
 
     QJsonArray arr;
     foreach(const QString& str, agents){
@@ -56,6 +59,12 @@ void Config::save() {
 
     saveObj["agents"] = arr;
 
+    arr.empty();
+    foreach(const QString& str, helpers) {
+        arr.append(str);
+    }
+
+    saveObj["helpers"] = arr;
     saveJsonToConfig(saveObj);
 }
 
@@ -72,6 +81,19 @@ Config Config::load() {
             agents.append(path);
         }
     }
+
+    arr.empty();
+    arr = jsonObj["helpers"].toArray();
+
+    QStringList helpers;
+
+    foreach(const QJsonValue& val, arr) {
+        QString path = val.toString();
+        if (QFile::exists(path)) {
+            helpers.append(path);
+        }
+    }
+
 
     return {
         jsonObj["version"].toString("1.8"),
@@ -94,7 +116,10 @@ Config Config::load() {
         jsonObj["autoggMessage"].toString(),
         jsonObj["windowWidth"].toInt(640),
         jsonObj["windowHeight"].toInt(480),
-        agents
+        jsonObj["useCosmetics"].toBool(true),
+        jsonObj["unlockCosmetics"].toBool(false),
+        agents,
+        helpers
     };
 }
 

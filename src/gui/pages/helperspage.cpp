@@ -25,17 +25,17 @@ HelpersPage::HelpersPage(Config& config, QWidget *parent) : ConfigurationPage(co
     palette.setColor(QPalette::Disabled, QPalette::Text, Qt::blue);
     helpers->setPalette(palette);
 
-    QPushButton* add = new QPushButton(QStringLiteral("Add"));
-    QPushButton* remove = new QPushButton(QStringLiteral("Remove"));
-    QPushButton* moveUp = new QPushButton(QStringLiteral("Move Up"));
-    QPushButton* moveDown = new QPushButton(QStringLiteral("Move Down"));
+    QPushButton* add = new QPushButton(QStringLiteral("添加"));
+    QPushButton* remove = new QPushButton(QStringLiteral("移除"));
+    QPushButton* moveUp = new QPushButton(QStringLiteral("上移"));
+    QPushButton* moveDown = new QPushButton(QStringLiteral("下移"));
 
     connect(add, &QPushButton::clicked, [this](){
         QStringList files = QFileDialog::getOpenFileNames(
                 nullptr,
-                QStringLiteral("Open Helper Executable"),
+                QStringLiteral("打开可执行的帮助程序"),
                 {},
-                QStringLiteral("Helper Executable (*.exe)")
+                QStringLiteral("帮助可执行程序(*.exe)")
                 );
         foreach(const QString& str, files){
             if(!str.isEmpty()){

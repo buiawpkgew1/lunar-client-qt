@@ -14,41 +14,33 @@ jobs:
   build_windows:
     name: "Windows Build"
 
-    runs-on: windows-2022
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
-        
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v2
+      
+    - name: Install Qt & MinGW
+      uses: jurplel/install-qt-action@v2.14.0
       with:
-        version: '6.2.2'
+        version: '5.15.2'
         host: 'windows'
         target: 'desktop'
-        arch: 'win64_msvc2019_64'
-        install-deps: 'true'
-        modules: 'qtwidget qtgui qtsvg qtnetwork'
-        setup-python: 'true'
-        tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
-        
-    - uses: ilammy/msvc-dev-cmd@v1
+        arch: 'win64_mingw81'
+        tools: 'tools_mingw,8.1.0-1-202004170606,qt.tools.win64_mingw810'
       
     - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "NMake Makefiles"
+      run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "MinGW Makefiles"
 
     - name: Build
-      # Build your program with the given configuration
       run: cmake --build . --config ${{env.BUILD_TYPE}}
       
     - name: Package Dependencies
+      shell: bash
       run: |
         mkdir with_deps
         mv lunar-client-qt.exe with_deps/
-        windeployqt with_deps/ --compiler-runtime --no-opengl-sw --no-virtualkeyboard --no-system-d3d-compiler --no-translations --no-quick-import
-        
-    - name: Upload Artifact
+        PATH="$IQTA_TOOLS/mingw810_64/bin":$PATH windeployqt with_deps/ --compiler-runtime --no-angle --no-opengl-sw --no-virtualkeyboard --no-webkit2 --no-system-d3d-compiler --no-translations --no-quick-import  
+    - name: Upload Artifiact
       uses: actions/upload-artifact@v2
       with:
         name: windows
@@ -61,15 +53,12 @@ jobs:
       - uses: actions/checkout@v2
       
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v2.14.0
         with:
           version: '6.2.2'
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          install-deps: 'true'
-          modules: 'qtwidget qtgui qtsvg qtnetwork'
-          setup-python: 'false'
         
       - name: Configure CMake
         run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}

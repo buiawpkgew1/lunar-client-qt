@@ -43,9 +43,6 @@ public:
     bool useLevelHeadNick;
     int levelHeadNickLevel;
 
-    bool useNickLevel;
-    int nickLevel;
-
     int windowWidth;
     int windowHeight;
 

@@ -6,10 +6,12 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
+#include <limits>
+
 #include <gui/widgets/widgetutils.h>
 
 MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPage(config, parent) {
-    customMinecraftDir = new QCheckBox(QStringLiteral("自定义 .minecraft 目录"));
+    customMinecraftDir = new QCheckBox(QStringLiteral("Custom .minecraft Directory"));
     minecraftPathChooser = new FileChooser(QFileDialog::Directory);
 
     serverToJoin = new QLineEdit();
@@ -17,7 +19,7 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
 
     connect(serverToJoin, &QLineEdit::returnPressed, [this](){serverToJoin->clearFocus();});
 
-    joinServerOnLaunch = new QCheckBox(QStringLiteral("启动时加入服务器"));
+    joinServerOnLaunch = new QCheckBox(QStringLiteral("Join Server On Launch"));
 
     connect(joinServerOnLaunch, &QCheckBox::toggled, serverToJoin, &QLineEdit::setEnabled);
 
@@ -30,18 +32,18 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
     nickHiderName = new QLineEdit();
     nickHiderName->setPlaceholderText(QStringLiteral("You"));
 
-    useLevelHeadPrefix = new QCheckBox(QStringLiteral("水平头前缀"));
+    useLevelHeadPrefix = new QCheckBox(QStringLiteral("LevelHead Prefix"));
     levelHeadPrefix = new QLineEdit();
-    levelHeadPrefix->setPlaceholderText(QStringLiteral("等级: "));
+    levelHeadPrefix->setPlaceholderText(QStringLiteral("Level: "));
 
-    useAutoggMessage = new QCheckBox(QStringLiteral("AutoGG 消息"));
+    useAutoggMessage = new QCheckBox(QStringLiteral("AutoGG Message"));
     autoggMessage = new QLineEdit();
     autoggMessage->setPlaceholderText(QStringLiteral("gg"));
 
-    useCosmetics = new QCheckBox(QStringLiteral("Enable Cosmetics"));
-    unlockCosmetics = new QCheckBox(QStringLiteral("Unlock All Cosmetics"));
-
-    connect(useCosmetics, &QCheckBox::toggled, unlockCosmetics, &QCheckBox::setEnabled);
+    useNickLevel = new QCheckBox(QStringLiteral("LevelHead level shown for nicks (-1 means nothing will show)"));
+    nickLevel = new QSpinBox;
+    nickLevel->setMinimum(INT_MIN);
+    nickLevel->setMaximum(INT_MAX);
 
     windowWidth = new QSpinBox();
     windowHeight = new QSpinBox();
@@ -54,11 +56,11 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
 
     QHBoxLayout* windowResContainer = new QHBoxLayout();
     windowResContainer->setSpacing(30);
-    windowResContainer->addWidget(new QLabel(QStringLiteral("窗口宽度")));
+    windowResContainer->addWidget(new QLabel(QStringLiteral("Window Width")));
     windowResContainer->addWidget(windowWidth, 1);
-    windowResContainer->addWidget(new QLabel(QStringLiteral("窗口高度")));
+    windowResContainer->addWidget(new QLabel(QStringLiteral("Window Height")));
     windowResContainer->addWidget(windowHeight, 1);
-        
+
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(40);
     mainLayout->addLayout(WidgetUtils::createOptional(customMinecraftDir, minecraftPathChooser));
@@ -69,8 +71,8 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
     hLayout->addLayout(WidgetUtils::createOptional(useLevelHeadPrefix, levelHeadPrefix));
     mainLayout->addLayout(hLayout);
     mainLayout->addLayout(WidgetUtils::createOptional(useAutoggMessage, autoggMessage));
-    mainLayout->addWidget(useCosmetics, 1, Qt::AlignHCenter);
-    mainLayout->addWidget(unlockCosmetics, 0, Qt::AlignCenter);
+    mainLayout->addLayout(WidgetUtils::createOptional(useNickLevel, nickLevel));
+
     mainLayout->addStretch(1);
 
     setLayout(mainLayout);
@@ -100,8 +102,8 @@ void MinecraftPage::apply() {
     config.useAutoggMessage = useAutoggMessage->isChecked();
     config.autoggMessage = autoggMessage->text();
 
-    config.useCosmetics = useCosmetics->isChecked();
-    config.unlockCosmetics = unlockCosmetics->isChecked();
+    config.useNickLevel = useNickLevel->isChecked();
+    config.nickLevel = nickLevel->value();
 
     config.windowWidth = windowWidth->value();
     config.windowHeight = windowHeight->value();
@@ -123,9 +125,16 @@ void MinecraftPage::load() {
     useAutoggMessage->setChecked(config.useAutoggMessage);
     autoggMessage->setText(config.autoggMessage);
 
-    useCosmetics->setChecked(config.useCosmetics);
-    unlockCosmetics->setChecked(config.unlockCosmetics);
+    useNickLevel->setChecked(config.useNickLevel);
+    nickLevel->setValue(config.nickLevel);
 
     windowWidth->setValue(config.windowWidth);
     windowHeight->setValue(config.windowHeight);
 }
+
+
+
+
+
+
+

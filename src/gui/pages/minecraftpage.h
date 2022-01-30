@@ -38,8 +38,8 @@ private:
     QCheckBox* useAutoggMessage;
     QLineEdit* autoggMessage;
 
-    QCheckBox* useCosmetics;
-    QCheckBox* unlockCosmetics;
+    QCheckBox* useNickLevel;
+    QSpinBox* nickLevel;
 
     QSpinBox* windowWidth;
     QSpinBox* windowHeight;

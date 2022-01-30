@@ -6,7 +6,6 @@
 
 #include <QStandardPaths>
 #include <QJsonObject>
-#include <QProcess>
 #include <QJsonArray>
 #include <QFileInfo>
 #include <QDir>
@@ -46,11 +45,12 @@ void Config::save() {
     saveObj["useAutoggMessage"] = useAutoggMessage;
     saveObj["autoggMessage"] = autoggMessage;
 
-    saveObj["useCosmetics"] = useCosmetics;
-    saveObj["unlockCosmetics"] = unlockCosmetics;
+    saveObj["useNickLevel"] = useNickLevel;
+    saveObj["nickLevel"] = nickLevel;
 
     saveObj["windowWidth"] = windowWidth;
     saveObj["windowHeight"] = windowHeight;
+
 
     QJsonArray arr;
     foreach(const QString& str, agents){
@@ -59,12 +59,6 @@ void Config::save() {
 
     saveObj["agents"] = arr;
 
-    arr.empty();
-    foreach(const QString& str, helpers) {
-        arr.append(str);
-    }
-
-    saveObj["helpers"] = arr;
     saveJsonToConfig(saveObj);
 }
 
@@ -81,19 +75,6 @@ Config Config::load() {
             agents.append(path);
         }
     }
-
-    arr.empty();
-    arr = jsonObj["helpers"].toArray();
-
-    QStringList helpers;
-
-    foreach(const QJsonValue& val, arr) {
-        QString path = val.toString();
-        if (QFile::exists(path)) {
-            helpers.append(path);
-        }
-    }
-
 
     return {
         jsonObj["version"].toString("1.8"),
@@ -114,12 +95,11 @@ Config Config::load() {
         jsonObj["levelHeadPrefix"].toString(),
         jsonObj["useAutoggMessage"].toBool(false),
         jsonObj["autoggMessage"].toString(),
+        jsonObj["useNickLevel"].toBool(true),
+        jsonObj["nickLevel"].toInt(-1),
         jsonObj["windowWidth"].toInt(640),
         jsonObj["windowHeight"].toInt(480),
-        jsonObj["useCosmetics"].toBool(true),
-        jsonObj["unlockCosmetics"].toBool(false),
-        agents,
-        helpers
+        agents
     };
 }
 

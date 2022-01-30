@@ -24,7 +24,7 @@ OfflineLauncher::OfflineLauncher(const Config& config, QObject *parent) : Launch
 }
 
 
-void OfflineLauncher::launch() {
+void OfflineLauncher::launch(CosmeticsState cosmeticsState) {
     QProcess process;
     process.setProgram(config.useCustomJre ? config.customJrePath : findJavaExecutable(config.gameVersion));
 
@@ -72,7 +72,13 @@ void OfflineLauncher::launch() {
                 config.nickHiderName
                 );
 
-    if(config.useCosmetics && config.unlockCosmetics)
+    if(config.useNickLevel)
+        args << getAgentFlags(
+                    QTemporaryFile::createNativeFile(":/res/NickLevel.jar")->fileName(),
+                    QString::number(config.nickLevel)
+                );
+
+    if(cosmeticsState == CosmeticsState::UNLOCKED)
         args << "-javaagent:" + QTemporaryFile::createNativeFile(":/res/UnlockedCosmetics.jar")->fileName();
 
     args << QProcess::splitCommand(config.jvmArgs);
@@ -84,12 +90,12 @@ void OfflineLauncher::launch() {
             "--assetIndex", config.gameVersion == QStringLiteral("1.7") ? "1.7.10" : config.gameVersion,
             "--userProperties", "{}",
             "--gameDir", config.useCustomMinecraftDir ? config.customMinecraftDir : minecraftDir,
-            "--launcherVersion", "2.9.3",
+            "--launcherVersion", "2.8.8",
             "--width", QString::number(config.windowWidth),
             "--height", QString::number(config.windowHeight)
     };
 
-    if(config.useCosmetics)
+    if(cosmeticsState != CosmeticsState::OFF)
         args << "--texturesDir" << lunarDir + "/textures";
 
     if(config.joinServerOnLaunch)
@@ -107,12 +113,6 @@ void OfflineLauncher::launch() {
 
     if(!process.startDetached()){
         emit error("Failed to start process: " + process.errorString());
-    }
-
-    if (!config.helpers.isEmpty())
-    {
-        foreach(const QString & path, config.helpers)
-            HelperLaunch(path);
     }
 }
 
@@ -147,13 +147,4 @@ QString OfflineLauncher::findJavaExecutable(const QString& version) {
     }
 
     return {};
-}
-
-void OfflineLauncher::HelperLaunch(const QString& helper) {
-    QProcess process;
-    process.setProgram(helper);
-    process.setStandardInputFile(QProcess::nullDevice());
-    process.setStandardOutputFile(QProcess::nullDevice());
-    process.setStandardErrorFile(QProcess::nullDevice());
-    process.startDetached(); 
 }

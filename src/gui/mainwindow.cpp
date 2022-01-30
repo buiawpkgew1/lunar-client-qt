@@ -21,7 +21,7 @@
 #include "launch/launcher.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::load()), offlineLauncher(config){
-    setWindowTitle(QStringLiteral("Lunar Client Qt"));
+    setWindowTitle(QStringLiteral("月球客户端 Qt"));
     static QString icon = QStringLiteral("icon.ico");
     if (QFile::exists(icon))
         setWindowIcon(QIcon(icon));

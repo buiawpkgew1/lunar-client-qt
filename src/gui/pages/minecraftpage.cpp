@@ -11,7 +11,7 @@
 #include <gui/widgets/widgetutils.h>
 
 MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPage(config, parent) {
-    customMinecraftDir = new QCheckBox(QStringLiteral("Custom .minecraft Directory"));
+    customMinecraftDir = new QCheckBox(QStringLiteral("自定义 .minecraft 目录"));
     minecraftPathChooser = new FileChooser(QFileDialog::Directory);
 
     serverToJoin = new QLineEdit();
@@ -19,7 +19,7 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
 
     connect(serverToJoin, &QLineEdit::returnPressed, [this](){serverToJoin->clearFocus();});
 
-    joinServerOnLaunch = new QCheckBox(QStringLiteral("Join Server On Launch"));
+    joinServerOnLaunch = new QCheckBox(QStringLiteral("启动时加入服务器"));
 
     connect(joinServerOnLaunch, &QCheckBox::toggled, serverToJoin, &QLineEdit::setEnabled);
 
@@ -28,19 +28,19 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
     serverContainer->addWidget(joinServerOnLaunch, 0, Qt::AlignHCenter);
     serverContainer->addWidget(serverToJoin);
 
-    useNickHiderName = new QCheckBox(QStringLiteral("NickHider Name"));
+    useNickHiderName = new QCheckBox(QStringLiteral("NickHider 名称"));
     nickHiderName = new QLineEdit();
     nickHiderName->setPlaceholderText(QStringLiteral("You"));
 
-    useLevelHeadPrefix = new QCheckBox(QStringLiteral("LevelHead Prefix"));
+    useLevelHeadPrefix = new QCheckBox(QStringLiteral("水平头前缀"));
     levelHeadPrefix = new QLineEdit();
-    levelHeadPrefix->setPlaceholderText(QStringLiteral("Level: "));
+    levelHeadPrefix->setPlaceholderText(QStringLiteral("等级: "));
 
-    useAutoggMessage = new QCheckBox(QStringLiteral("AutoGG Message"));
+    useAutoggMessage = new QCheckBox(QStringLiteral("AutoGG 消息"));
     autoggMessage = new QLineEdit();
     autoggMessage->setPlaceholderText(QStringLiteral("gg"));
 
-    useNickLevel = new QCheckBox(QStringLiteral("LevelHead level shown for nicks (-1 means nothing will show)"));
+    useNickLevel = new QCheckBox(QStringLiteral("为刻痕显示的 LevelHead 级别(-1 表示不会显示任何内容)"));
     nickLevel = new QSpinBox;
     nickLevel->setMinimum(INT_MIN);
     nickLevel->setMaximum(INT_MAX);
@@ -56,9 +56,9 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
 
     QHBoxLayout* windowResContainer = new QHBoxLayout();
     windowResContainer->setSpacing(30);
-    windowResContainer->addWidget(new QLabel(QStringLiteral("Window Width")));
+    windowResContainer->addWidget(new QLabel(QStringLiteral("窗口宽度")));
     windowResContainer->addWidget(windowWidth, 1);
-    windowResContainer->addWidget(new QLabel(QStringLiteral("Window Height")));
+    windowResContainer->addWidget(new QLabel(QStringLiteral("窗口高度")));
     windowResContainer->addWidget(windowHeight, 1);
 
     QVBoxLayout* mainLayout = new QVBoxLayout();
@@ -79,7 +79,7 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
 }
 
 QString MinecraftPage::title() {
-    return QStringLiteral("Minecraft");
+    return QStringLiteral("我的世界");
 }
 
 QIcon MinecraftPage::icon() {

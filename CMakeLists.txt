@@ -12,8 +12,16 @@ find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
-        Svg
-        REQUIRED)
+        Svg)
+if (NOT Qt6_FOUND)
+    find_package(Qt5 COMPONENTS
+            Core
+            Gui
+            Widgets
+            Svg
+            REQUIRED
+            )
+endif()
 
 set(SOURCE_FILES
         src/main.cpp
@@ -36,6 +44,8 @@ set(SOURCE_FILES
         src/gui/pages/minecraftpage.cpp
         src/gui/pages/minecraftpage.h
         src/gui/widgets/filechooser.cpp
+        src/gui/widgets/filechooser.h 
+        src/gui/widgets/widgetutils.cpp 
         src/gui/widgets/filechooser.h
         src/gui/widgets/widgetutils.cpp
         src/gui/widgets/widgetutils.h)

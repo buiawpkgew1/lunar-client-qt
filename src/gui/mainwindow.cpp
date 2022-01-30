@@ -12,6 +12,8 @@
 #include <QStandardPaths>
 #include <QJsonDocument>
 #include <QMessageBox>
+#include <QFileSystemModel>
+#include <QIODevice>
 
 #include "pages/configurationpage.h"
 #include "pages/generalpage.h"
@@ -20,6 +22,29 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::load()), offlineLauncher(config){
     setWindowTitle(QStringLiteral("Lunar Client Qt"));
+    static QString icon = QStringLiteral("icon.ico");
+    if (QFile::exists(icon))
+        setWindowIcon(QIcon(icon));
+    else {
+        QString lcloc =
+#if defined(Q_OS_WIN)
+            QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QStringLiteral("/Programs/lunarclient/Lunar Client.exe");
+#elif defined(Q_OS_DARWIN)
+            QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/lunarclient/Lunar Client"; //Need location
+#else
+            QDir::homePath() + "/lunarclient/Lunar Client"; // Need location
+#endif
+        QFileInfo fin(lcloc);
+        QFileSystemModel* model = new QFileSystemModel;
+        QIcon ic = model->fileIcon(model->index(fin.filePath()));
+        setWindowIcon(ic);
+        QPixmap pixmap = ic.pixmap(ic.actualSize(QSize(128, 128)));
+        QFile file(icon);
+        file.open(QIODevice::WriteOnly);
+        pixmap.save(&file, "ICO");
+    }
+    
+
     QWidget* centralWidget = new QWidget();
 
     QGridLayout* mainLayout = new QGridLayout();
@@ -34,7 +59,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
     pages = {
         new GeneralPage(config),
         new MinecraftPage(config),
-        new AgentsPage(config)
+        new AgentsPage(config),
+        new HelpersPage(config)
     };
 
     foreach(ConfigurationPage* page, pages){
@@ -55,17 +81,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
     versionSelect = new QComboBox();
     versionSelect->addItems({"1.7", "1.8", "1.12", "1.16", "1.17", "1.18"});
 
-    launchUnlockedCosmeticsButton = new QPushButton;
-    launchUnlockedCosmeticsButton->setMinimumHeight(45);
-    connect(launchUnlockedCosmeticsButton, &QPushButton::clicked, this, &MainWindow::launchUnlockedCosmetics);
-
-    launchNoCosmeticsButton = new QPushButton();
-    launchNoCosmeticsButton->setMinimumHeight(45);
-    connect(launchNoCosmeticsButton, &QPushButton::clicked, this, &MainWindow::launchNoCosmetics);
-
     launchButton = new QPushButton();
-    launchButton->setMinimumHeight(45);
-    connect(launchButton, &QPushButton::clicked, this, &MainWindow::launchDefault);
+    launchButton->setMinimumHeight(80);
+    connect(launchButton, &QPushButton::clicked, this, &MainWindow::launch);
 
     connect(&offlineLauncher, &OfflineLauncher::error, this, &MainWindow::errorCallback);
 
@@ -73,8 +91,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
 
     mainLayout->addWidget(pageList);
     mainLayout->addWidget(versionSelect, 1, 0);
-    mainLayout->addWidget(launchUnlockedCosmeticsButton, 2, 0);
-    mainLayout->addWidget(launchNoCosmeticsButton, 3, 0);
     mainLayout->addWidget(launchButton, 4, 0);
     mainLayout->addWidget(pageStack, 0, 3, -1, 1);
 
@@ -87,32 +103,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
 }
 
 void MainWindow::resetLaunchButtons() {
-    launchUnlockedCosmeticsButton->setEnabled(true);
-    launchUnlockedCosmeticsButton->setText(QStringLiteral("Launch With All\nCosmetics"));
-
     launchButton->setEnabled(true);
     launchButton->setText(QStringLiteral("Launch"));
-
-    launchNoCosmeticsButton->setEnabled(true);
-    launchNoCosmeticsButton->setText(QStringLiteral("Launch Without\nCosmetics"));
-}
-
-void MainWindow::launchNoCosmetics() {
-    launch(offlineLauncher, Launcher::CosmeticsState::OFF);
-}
-
-void MainWindow::launchDefault() {
-    launch(offlineLauncher, Launcher::CosmeticsState::DEFAULT);
-}
-
-void MainWindow::launchUnlockedCosmetics() {
-    launch(offlineLauncher, Launcher::CosmeticsState::UNLOCKED);
 }
 
 
-void MainWindow::launch(Launcher& launcher, Launcher::CosmeticsState cosmeticsState){
+void MainWindow::launch(){
     apply();
-    launcher.launch(cosmeticsState);
+    offlineLauncher.launch();
     if(config.closeOnLaunch)
         close();
 }

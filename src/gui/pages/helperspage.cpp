@@ -10,6 +10,23 @@
 #include <QFileDialog>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QSortFilterProxyModel>
+#include <QFileSystemModel>
+
+#ifndef Q_OS_WIN
+class ExecutableFilter : public QSortFilterProxyModel {
+protected:
+    [[nodiscard]] bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override {
+        QFileSystemModel* fileModel = qobject_cast<QFileSystemModel*>(sourceModel());
+        QFileInfo file( fileModel->filePath(sourceModel()->index(sourceRow, 0, sourceParent)) );
+
+        if (file.isExecutable())
+            return true;
+        else
+            return false;
+    }
+};
+#endif
 
 HelpersPage::HelpersPage(Config& config, QWidget *parent) : ConfigurationPage(config, parent) {
     QVBoxLayout* mainLayout = new QVBoxLayout();
@@ -25,21 +42,25 @@ HelpersPage::HelpersPage(Config& config, QWidget *parent) : ConfigurationPage(co
     palette.setColor(QPalette::Disabled, QPalette::Text, Qt::blue);
     helpers->setPalette(palette);
 
-    QPushButton* add = new QPushButton(QStringLiteral("添加"));
-    QPushButton* remove = new QPushButton(QStringLiteral("移除"));
-    QPushButton* moveUp = new QPushButton(QStringLiteral("上移"));
-    QPushButton* moveDown = new QPushButton(QStringLiteral("下移"));
+    QPushButton* add = new QPushButton(QStringLiteral("Add"));
+    QPushButton* remove = new QPushButton(QStringLiteral("Remove"));
+    QPushButton* moveUp = new QPushButton(QStringLiteral("Move Up"));
+    QPushButton* moveDown = new QPushButton(QStringLiteral("Move Down"));
 
     connect(add, &QPushButton::clicked, [this](){
-        QStringList files = QFileDialog::getOpenFileNames(
-                nullptr,
-                QStringLiteral("打开可执行的帮助程序"),
-                {},
-                QStringLiteral("帮助可执行程序(*.exe)")
-                );
-        foreach(const QString& str, files){
-            if(!str.isEmpty()){
-                addHelper(str, true);
+        QFileDialog dialog(nullptr, QStringLiteral("Open Helper Program"));
+#ifdef Q_OS_WIN
+        dialog.setNameFilters(QStringList({ QStringLiteral("Executable (*.exe)"), QStringLiteral("Batch File (*.bat *.cmd)"), QStringLiteral("Powershell File (*.ps1)") }));
+#else
+        dialog.setNameFilter(QStringLiteral("Executable (*)"));
+        dialog.setProxyModel(new ExecutableFilter);
+#endif
+        dialog.setFileMode(QFileDialog::ExistingFiles);
+        if(dialog.exec() == QFileDialog::Accepted){
+            foreach(const QString& str, dialog.selectedFiles()){
+                if(!str.isEmpty()){
+                    addHelper(str, true);
+                }
             }
         }
     });

@@ -6,12 +6,10 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
-#include <limits>
-
 #include <gui/widgets/widgetutils.h>
 
 MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPage(config, parent) {
-    customMinecraftDir = new QCheckBox(QStringLiteral("自定义 .minecraft 目录"));
+    customMinecraftDir = new QCheckBox(QStringLiteral("Custom .minecraft Directory"));
     minecraftPathChooser = new FileChooser(QFileDialog::Directory);
 
     serverToJoin = new QLineEdit();
@@ -19,7 +17,7 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
 
     connect(serverToJoin, &QLineEdit::returnPressed, [this](){serverToJoin->clearFocus();});
 
-    joinServerOnLaunch = new QCheckBox(QStringLiteral("启动时加入服务器"));
+    joinServerOnLaunch = new QCheckBox(QStringLiteral("Join Server On Launch"));
 
     connect(joinServerOnLaunch, &QCheckBox::toggled, serverToJoin, &QLineEdit::setEnabled);
 
@@ -28,22 +26,27 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
     serverContainer->addWidget(joinServerOnLaunch, 0, Qt::AlignHCenter);
     serverContainer->addWidget(serverToJoin);
 
-    useNickHiderName = new QCheckBox(QStringLiteral("NickHider 名称"));
+    useNickHiderName = new QCheckBox(QStringLiteral("NickHider Name"));
     nickHiderName = new QLineEdit();
     nickHiderName->setPlaceholderText(QStringLiteral("You"));
 
-    useLevelHeadPrefix = new QCheckBox(QStringLiteral("水平头前缀"));
-    levelHeadPrefix = new QLineEdit();
-    levelHeadPrefix->setPlaceholderText(QStringLiteral("等级: "));
-
-    useAutoggMessage = new QCheckBox(QStringLiteral("AutoGG 消息"));
+    useAutoggMessage = new QCheckBox(QStringLiteral("AutoGG Message"));
     autoggMessage = new QLineEdit();
     autoggMessage->setPlaceholderText(QStringLiteral("gg"));
 
-    useNickLevel = new QCheckBox(QStringLiteral("为刻痕显示的 LevelHead 级别(-1 表示不会显示任何内容)"));
-    nickLevel = new QSpinBox;
-    nickLevel->setMinimum(INT_MIN);
-    nickLevel->setMaximum(INT_MAX);
+    useLevelHeadPrefix = new QCheckBox(QStringLiteral("LevelHead Prefix"));
+    levelHeadPrefix = new QLineEdit();
+    levelHeadPrefix->setPlaceholderText(QStringLiteral("Level: "));
+
+    useLevelHeadNick = new QCheckBox(QStringLiteral("LevelHead Nick Level"));
+    levelHeadNickLevel = new QLineEdit();
+    levelHeadNickLevel->setPlaceholderText(QString::number(-1));
+
+
+    useCosmetics = new QCheckBox(QStringLiteral("Enable Cosmetics"));
+    unlockCosmetics = new QCheckBox(QStringLiteral("Unlock All Cosmetics"));
+
+    connect(useCosmetics, &QCheckBox::toggled, unlockCosmetics, &QCheckBox::setEnabled);
 
     windowWidth = new QSpinBox();
     windowHeight = new QSpinBox();
@@ -56,11 +59,11 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
 
     QHBoxLayout* windowResContainer = new QHBoxLayout();
     windowResContainer->setSpacing(30);
-    windowResContainer->addWidget(new QLabel(QStringLiteral("窗口宽度")));
+    windowResContainer->addWidget(new QLabel(QStringLiteral("Window Width")));
     windowResContainer->addWidget(windowWidth, 1);
-    windowResContainer->addWidget(new QLabel(QStringLiteral("窗口高度")));
+    windowResContainer->addWidget(new QLabel(QStringLiteral("Window Height")));
     windowResContainer->addWidget(windowHeight, 1);
-
+        
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(40);
     mainLayout->addLayout(WidgetUtils::createOptional(customMinecraftDir, minecraftPathChooser));
@@ -68,18 +71,21 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
     mainLayout->addLayout(windowResContainer);
     QHBoxLayout* hLayout = new QHBoxLayout;
     hLayout->addLayout(WidgetUtils::createOptional(useNickHiderName, nickHiderName));
-    hLayout->addLayout(WidgetUtils::createOptional(useLevelHeadPrefix, levelHeadPrefix));
+    hLayout->addLayout(WidgetUtils::createOptional(useAutoggMessage, autoggMessage));
     mainLayout->addLayout(hLayout);
-    mainLayout->addLayout(WidgetUtils::createOptional(useAutoggMessage, autoggMessage));
-    mainLayout->addLayout(WidgetUtils::createOptional(useNickLevel, nickLevel));
-
+    QHBoxLayout* h2Layout = new QHBoxLayout;
+    h2Layout->addLayout(WidgetUtils::createOptional(useLevelHeadPrefix, levelHeadPrefix));
+    h2Layout->addLayout(WidgetUtils::createOptional(useLevelHeadNick, levelHeadNickLevel));
+    mainLayout->addLayout(h2Layout);
+    mainLayout->addWidget(useCosmetics, 1, Qt::AlignHCenter);
+    mainLayout->addWidget(unlockCosmetics, 0, Qt::AlignCenter);
     mainLayout->addStretch(1);
 
     setLayout(mainLayout);
 }
 
 QString MinecraftPage::title() {
-    return QStringLiteral("我的世界");
+    return QStringLiteral("Minecraft");
 }
 
 QIcon MinecraftPage::icon() {
@@ -99,11 +105,14 @@ void MinecraftPage::apply() {
     config.useLevelHeadPrefix = useLevelHeadPrefix->isChecked();
     config.levelHeadPrefix = levelHeadPrefix->text();
 
+    config.useLevelHeadNick = useLevelHeadNick->isChecked();
+    config.levelHeadNickLevel = levelHeadNickLevel->text().toInt();
+
     config.useAutoggMessage = useAutoggMessage->isChecked();
     config.autoggMessage = autoggMessage->text();
 
-    config.useNickLevel = useNickLevel->isChecked();
-    config.nickLevel = nickLevel->value();
+    config.useCosmetics = useCosmetics->isChecked();
+    config.unlockCosmetics = unlockCosmetics->isChecked();
 
     config.windowWidth = windowWidth->value();
     config.windowHeight = windowHeight->value();
@@ -122,19 +131,15 @@ void MinecraftPage::load() {
     useLevelHeadPrefix->setChecked(config.useLevelHeadPrefix);
     levelHeadPrefix->setText(config.levelHeadPrefix);
 
+    useLevelHeadNick->setChecked(config.useLevelHeadNick);
+    levelHeadNickLevel->setText(QString::number(config.levelHeadNickLevel));
+
     useAutoggMessage->setChecked(config.useAutoggMessage);
     autoggMessage->setText(config.autoggMessage);
 
-    useNickLevel->setChecked(config.useNickLevel);
-    nickLevel->setValue(config.nickLevel);
+    useCosmetics->setChecked(config.useCosmetics);
+    unlockCosmetics->setChecked(config.unlockCosmetics);
 
     windowWidth->setValue(config.windowWidth);
     windowHeight->setValue(config.windowHeight);
 }
-
-
-
-
-
-
-

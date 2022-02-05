@@ -32,14 +32,11 @@ private:
     QCheckBox* useLevelHeadPrefix;
     QLineEdit* levelHeadPrefix;
 
-    QCheckBox* useLevelHeadNick;
-    QLineEdit* levelHeadNickLevel;
-
     QCheckBox* useAutoggMessage;
     QLineEdit* autoggMessage;
 
-    QCheckBox* useCosmetics;
-    QCheckBox* unlockCosmetics;
+    QCheckBox* useNickLevel;
+    QSpinBox* nickLevel;
 
     QSpinBox* windowWidth;
     QSpinBox* windowHeight;

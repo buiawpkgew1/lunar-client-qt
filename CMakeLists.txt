@@ -41,12 +41,48 @@ set(SOURCE_FILES
         src/gui/widgets/filechooser.cpp
         src/gui/widgets/filechooser.h
         src/gui/widgets/widgetutils.cpp
-        src/gui/widgets/widgetutils.h)
+        src/gui/widgets/widgetutils.h src/utils.cpp src/utils.h)
 
 add_executable(lunar-client-qt WIN32 MACOSX_BUNDLE ${SOURCE_FILES} ${LIB_SRC} res.qrc)
 
-set(QT_LIBS ${QT_COMPONENTS})
-list(TRANSFORM QT_LIBS PREPEND ${QT_VER}::)
+if(UNIX AND APPLE)
+    set(JAR_DEST_DIR ${CMAKE_BINARY_DIR}/lunar-client-qt.app/Contents/MacOS)
+else()
+    set(JAR_DEST_DIR ${CMAKE_BINARY_DIR})
+endif()
+
+function(COPY_JARS DIR OUTPUT_LIST)
+    add_custom_command(
+            OUTPUT "${JAR_DEST_DIR}/${DIR}/"
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${JAR_DEST_DIR}/${DIR}/
+    )
+
+    set(COPIED_FILES "${JAR_DEST_DIR}/${DIR}/")
+
+    file(GLOB JARS ${CMAKE_SOURCE_DIR}/java/${DIR}/*.jar)
+
+    foreach(JAR ${JARS})
+        get_filename_component(FILE_NAME ${JAR} NAME)
+        add_custom_command(
+                OUTPUT "${JAR_DEST_DIR}/${DIR}/${FILE_NAME}"
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${JAR} ${JAR_DEST_DIR}/${DIR}/
+                DEPENDS ${JAR}
+                COMMENT "Copying ${FILE_NAME}"
+        )
+        list(APPEND COPIED_FILES ${JAR_DEST_DIR}/${DIR}/${FILE_NAME})
+    endforeach()
+
+    set(${OUTPUT_LIST} ${COPIED_FILES} PARENT_SCOPE)
+endfunction()
+
+copy_jars(agents COPIED_AGENTS)
+copy_jars(libs COPIED_LIBRARIES)
+
+add_custom_target(CopyJars ALL COMMAND DEPENDS ${COPIED_AGENTS} ${COPIED_LIBRARIES})
+add_dependencies(lunar-client-qt CopyJars)
+
+list(TRANSFORM QT_COMPONENTS PREPEND ${QT_VER}:: OUTPUT_VARIABLE QT_LIBS)
 
 target_link_libraries(lunar-client-qt ${QT_LIBS})
 

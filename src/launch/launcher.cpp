@@ -5,6 +5,7 @@
 #include "launcher.h"
 
 Launcher::Launcher(const Config& config, QObject *parent) : config(config), QObject(parent) {
+<<<<<<< HEAD
 }
 
 QString Launcher::getAgentFlags(const QString &path, const QString &options) {
@@ -19,3 +20,6 @@ QString Launcher::getLevelHeadOptions(const bool& uselevelheadprefix, const QStr
         return levelheadnicklevel;
     else return levelheadprefix + "@" + levelheadnicklevel;
 };
+=======
+}
+>>>>>>> upstream/master

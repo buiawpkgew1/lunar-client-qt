@@ -10,6 +10,8 @@
 #include <QStandardPaths>
 #include <QTemporaryFile>
 
+#include "utils.h"
+
 const QString OfflineLauncher::lunarDir = QDir::homePath() + "/.lunarclient";
 const QString OfflineLauncher::minecraftDir =
 #if defined(Q_OS_WIN)
@@ -47,33 +49,40 @@ void OfflineLauncher::launch() {
                     "lunar-assets-prod-1-optifine.jar",
                     "lunar-assets-prod-2-optifine.jar",
                     "lunar-assets-prod-3-optifine.jar",
-                    "OptiFine.jar"
+                    "OptiFine.jar",
+
+                    Utils::getLibsDirectory() + QDir::separator() + '*'
         }).join(QDir::listSeparator())
     };
 
     foreach(const QString& path, config.agents)
         args << "-javaagent:" + path;
 
-    if(config.useAutoggMessage)
-        args << getAgentFlags(
-                QTemporaryFile::createNativeFile(":/res/CustomAutoGG.jar")->fileName(),
-                config.autoggMessage
-                );
 
+<<<<<<< HEAD
     if(config.useLevelHeadPrefix || config.useLevelHeadNick)
         args << getAgentFlags(
                 QTemporaryFile::createNativeFile(":/res/LevelHeadImproved.jar")->fileName(),
                 getLevelHeadOptions(config.useLevelHeadPrefix, config.levelHeadPrefix, config.useLevelHeadNick, QString::number(config.levelHeadNickLevel))
                 );
+=======
+    if(config.useLevelHeadPrefix)
+        args << Utils::getAgentFlags("CustomLevelHead.jar", config.levelHeadPrefix);
+>>>>>>> upstream/master
 
-    if(config.useNickHiderName)
-        args << getAgentFlags(
-                QTemporaryFile::createNativeFile(":/res/CustomNickHider.jar")->fileName(),
-                config.nickHiderName
-                );
+    if(config.useAutoggMessage)
+        args << Utils::getAgentFlags("CustomAutoGG.jar", config.autoggMessage);
 
+<<<<<<< HEAD
     if(config.useCosmetics && config.unlockCosmetics)
         args << "-javaagent:" + QTemporaryFile::createNativeFile(":/res/UnlockedCosmetics.jar")->fileName();
+=======
+    if(config.useNickLevel)
+        args << Utils::getAgentFlags("NickLevel.jar", QString::number(config.nickLevel));
+
+    if(cosmeticsState == CosmeticsState::UNLOCKED)
+        args << Utils::getAgentFlags("UnlockCosmetics.jar");
+>>>>>>> upstream/master
 
     args << QProcess::splitCommand(config.jvmArgs);
 
@@ -84,7 +93,11 @@ void OfflineLauncher::launch() {
             "--assetIndex", config.gameVersion == QStringLiteral("1.7") ? "1.7.10" : config.gameVersion,
             "--userProperties", "{}",
             "--gameDir", config.useCustomMinecraftDir ? config.customMinecraftDir : minecraftDir,
+<<<<<<< HEAD
             "--launcherVersion", "2.9.3",
+=======
+            "--launcherVersion", "2.9.4",
+>>>>>>> upstream/master
             "--width", QString::number(config.windowWidth),
             "--height", QString::number(config.windowHeight)
     };

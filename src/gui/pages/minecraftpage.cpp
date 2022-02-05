@@ -26,11 +26,19 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
     serverContainer->addWidget(joinServerOnLaunch, 0, Qt::AlignHCenter);
     serverContainer->addWidget(serverToJoin);
 
+<<<<<<< HEAD
     useNickHiderName = new QCheckBox(QStringLiteral("NickHider 名称"));
     nickHiderName = new QLineEdit();
     nickHiderName->setPlaceholderText(QStringLiteral("You"));
 
     useAutoggMessage = new QCheckBox(QStringLiteral("AutoGG 消息"));
+=======
+    useLevelHeadPrefix = new QCheckBox(QStringLiteral("LevelHead Prefix"));
+    levelHeadPrefix = new QLineEdit();
+    levelHeadPrefix->setPlaceholderText(QStringLiteral("Level: "));
+
+    useAutoggMessage = new QCheckBox(QStringLiteral("AutoGG Message"));
+>>>>>>> upstream/master
     autoggMessage = new QLineEdit();
     autoggMessage->setPlaceholderText(QStringLiteral("gg"));
 
@@ -70,6 +78,7 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
     mainLayout->addLayout(serverContainer);
     mainLayout->addLayout(windowResContainer);
     QHBoxLayout* hLayout = new QHBoxLayout;
+<<<<<<< HEAD
     hLayout->addLayout(WidgetUtils::createOptional(useNickHiderName, nickHiderName));
     hLayout->addLayout(WidgetUtils::createOptional(useAutoggMessage, autoggMessage));
     mainLayout->addLayout(hLayout);
@@ -79,6 +88,14 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
     mainLayout->addLayout(h2Layout);
     mainLayout->addWidget(useCosmetics, 1, Qt::AlignHCenter);
     mainLayout->addWidget(unlockCosmetics, 0, Qt::AlignCenter);
+=======
+    hLayout->addLayout(WidgetUtils::createOptional(useLevelHeadPrefix, levelHeadPrefix));
+    hLayout->addLayout(WidgetUtils::createOptional(useAutoggMessage, autoggMessage));
+
+    mainLayout->addLayout(hLayout);
+    mainLayout->addLayout(WidgetUtils::createOptional(useNickLevel, nickLevel));
+
+>>>>>>> upstream/master
     mainLayout->addStretch(1);
 
     setLayout(mainLayout);
@@ -98,9 +115,6 @@ void MinecraftPage::apply() {
 
     config.joinServerOnLaunch = joinServerOnLaunch->isChecked();
     config.serverIp = serverToJoin->text();
-
-    config.useNickHiderName = useNickHiderName->isChecked();
-    config.nickHiderName = nickHiderName->text();
 
     config.useLevelHeadPrefix = useLevelHeadPrefix->isChecked();
     config.levelHeadPrefix = levelHeadPrefix->text();
@@ -124,9 +138,6 @@ void MinecraftPage::load() {
 
     joinServerOnLaunch->setChecked(config.joinServerOnLaunch);
     serverToJoin->setText(config.serverIp);
-
-    useNickHiderName->setChecked(config.useNickHiderName);
-    nickHiderName->setText(config.nickHiderName);
 
     useLevelHeadPrefix->setChecked(config.useLevelHeadPrefix);
     levelHeadPrefix->setText(config.levelHeadPrefix);

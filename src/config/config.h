@@ -31,8 +31,13 @@ public:
     bool joinServerOnLaunch;
     QString serverIp;
 
+<<<<<<< HEAD
     bool useNickHiderName;
     QString nickHiderName;
+=======
+    bool useLevelHeadPrefix;
+    QString levelHeadPrefix;
+>>>>>>> upstream/master
 
     bool useAutoggMessage;
     QString autoggMessage;

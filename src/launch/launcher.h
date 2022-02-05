@@ -14,10 +14,14 @@ public:
 
     explicit Launcher(const Config& config, QObject* parent);
 
+<<<<<<< HEAD
     virtual void launch() = 0;
 
     static QString getAgentFlags(const QString& path, const QString& options);
     static QString getLevelHeadOptions(const bool& uselevelheadprefix, const QString& levelheadprefix, const bool& uselevelheadnicklevel, const QString& levelheadnicklevel);
+=======
+    virtual void launch(CosmeticsState cosmeticsState) = 0;
+>>>>>>> upstream/master
 protected:
     const Config& config;
 };

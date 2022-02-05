@@ -69,7 +69,6 @@ MinecraftPage::MinecraftPage(Config &config, QWidget *parent) : ConfigurationPag
     mainLayout->addLayout(hLayout);
     mainLayout->addLayout(WidgetUtils::createOptional(useNickLevel, nickLevel));
 
->>>>>>> upstream/master
     mainLayout->addStretch(1);
 
     setLayout(mainLayout);

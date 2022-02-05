@@ -6,7 +6,6 @@
 
 #include <QStandardPaths>
 #include <QJsonObject>
-#include <QProcess>
 #include <QJsonArray>
 #include <QFileInfo>
 #include <QDir>
@@ -40,17 +39,15 @@ void Config::save() {
     saveObj["useLevelHeadPrefix"] = useLevelHeadPrefix;
     saveObj["levelHeadPrefix"] = levelHeadPrefix;
 
-    saveObj["useLevelHeadNick"] = useLevelHeadNick;
-    saveObj["levelHeadNickLevel"] = levelHeadNickLevel;
-
     saveObj["useAutoggMessage"] = useAutoggMessage;
     saveObj["autoggMessage"] = autoggMessage;
 
-    saveObj["useCosmetics"] = useCosmetics;
-    saveObj["unlockCosmetics"] = unlockCosmetics;
+    saveObj["useNickLevel"] = useNickLevel;
+    saveObj["nickLevel"] = nickLevel;
 
     saveObj["windowWidth"] = windowWidth;
     saveObj["windowHeight"] = windowHeight;
+
 
     QJsonArray arr;
     foreach(const QString& str, agents){
@@ -59,12 +56,6 @@ void Config::save() {
 
     saveObj["agents"] = arr;
 
-    QJsonArray arr2;
-    foreach(const QString& str, helpers) {
-        arr2.append(str);
-    }
-
-    saveObj["helpers"] = arr2;
     saveJsonToConfig(saveObj);
 }
 
@@ -82,19 +73,6 @@ Config Config::load() {
         }
     }
 
-    arr.empty();
-    arr = jsonObj["helpers"].toArray();
-
-    QStringList helpers;
-
-    foreach(const QJsonValue& val, arr) {
-        QString path = val.toString();
-        if (QFile::exists(path)) {
-            helpers.append(path);
-        }
-    }
-
-
     return {
         jsonObj["version"].toString("1.8"),
         jsonObj["keepMemorySame"].toBool(true),
@@ -108,25 +86,15 @@ Config Config::load() {
         jsonObj["customMinecraftDir"].toString(),
         jsonObj["joinServerOnLaunch"].toBool(false),
         jsonObj["serverIp"].toString(),
-<<<<<<< HEAD
-        jsonObj["useNickHiderName"].toBool(false),
-        jsonObj["nickHiderName"].toString(),
-=======
         jsonObj["useLevelHeadPrefix"].toBool(false),
         jsonObj["levelHeadPrefix"].toString(),
->>>>>>> upstream/master
         jsonObj["useAutoggMessage"].toBool(false),
         jsonObj["autoggMessage"].toString(),
-        jsonObj["useLevelHeadPrefix"].toBool(false),
-        jsonObj["levelHeadPrefix"].toString(),
-        jsonObj["useLevelHeadNick"].toBool(false),
-        jsonObj["levelHeadNickLevel"].toInt(-1),
+        jsonObj["useNickLevel"].toBool(true),
+        jsonObj["nickLevel"].toInt(-1),
         jsonObj["windowWidth"].toInt(640),
         jsonObj["windowHeight"].toInt(480),
-        jsonObj["useCosmetics"].toBool(true),
-        jsonObj["unlockCosmetics"].toBool(false),
-        agents,
-        helpers
+        agents
     };
 }
 

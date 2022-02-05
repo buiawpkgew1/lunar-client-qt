@@ -31,31 +31,20 @@ public:
     bool joinServerOnLaunch;
     QString serverIp;
 
-<<<<<<< HEAD
-    bool useNickHiderName;
-    QString nickHiderName;
-=======
     bool useLevelHeadPrefix;
     QString levelHeadPrefix;
->>>>>>> upstream/master
 
     bool useAutoggMessage;
     QString autoggMessage;
 
-    bool useLevelHeadPrefix;
-    QString levelHeadPrefix;
-
-    bool useLevelHeadNick;
-    int levelHeadNickLevel;
+    bool useNickLevel;
+    int nickLevel;
 
     int windowWidth;
     int windowHeight;
 
-    bool useCosmetics;
-    bool unlockCosmetics;
 
     QStringList agents;
-    QStringList helpers;
 public:
     void save();
     static Config load();

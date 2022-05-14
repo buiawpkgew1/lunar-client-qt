@@ -36,7 +36,7 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(40);
 
-    keepMemorySame = new QCheckBox(QStringLiteral("Keep initial and maximum memory allocations the same"));
+    keepMemorySame = new QCheckBox(QStringLiteral("保持初始和最大内存分配相同"));
 
     unsigned long long systemMemory = getSystemMemory();
     size_t mibMemory = (size_t)(systemMemory / 1024 / 1024);
@@ -71,7 +71,7 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
     memorySliderContainer->addWidget(maxMemory);
 
     //Custom jre checkbox lineedit and button
-    useCustomJre = new QCheckBox(QStringLiteral("Use Custom JRE"));
+    useCustomJre = new QCheckBox(QStringLiteral("使用自定义 JRE"));
     jrePath = new FileChooser(QFileDialog::ExistingFile);
 
     //Jvm arguments
@@ -80,14 +80,14 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
 
     jvmArgs = new QPlainTextEdit();
 
-    jvmArgsGroup->addWidget(new QLabel(QStringLiteral("JVM Arguments")), 0, Qt::AlignHCenter);
+    jvmArgsGroup->addWidget(new QLabel(QStringLiteral("JVM 参数")), 0, Qt::AlignHCenter);
     jvmArgsGroup->addWidget(jvmArgs);
 
     //Checkboxes
-    QGroupBox* groupBox = new QGroupBox(QStringLiteral("After Launch"));
+    QGroupBox* groupBox = new QGroupBox(QStringLiteral("启动后"));
 
-    QRadioButton* stayOpen = new QRadioButton(QStringLiteral("Keep Launcher Open"));
-    closeOnLaunch = new QRadioButton(QStringLiteral("Close Launcher"));
+    QRadioButton* stayOpen = new QRadioButton(QStringLiteral("保持启动器打开"));
+    closeOnLaunch = new QRadioButton(QStringLiteral("关闭启动器"));
     stayOpen->setChecked(true);
 
     QVBoxLayout* radioLayout = new QVBoxLayout();
@@ -108,7 +108,7 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
 }
 
 QString GeneralPage::title() {
-    return QStringLiteral("General");
+    return QStringLiteral("设置");
 }
 
 QIcon GeneralPage::icon() {
@@ -155,5 +155,5 @@ void GeneralPage::keepMinMaxSameChanged(bool checked) {
 }
 
 QString GeneralPage::description() {
-    return "Java and launcher settings.";
+    return "Java和启动器设置.";
 }

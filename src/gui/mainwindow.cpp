@@ -132,13 +132,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
 
 void MainWindow::resetLaunchButtons() {
     launchUnlockedCosmeticsButton->setEnabled(true);
-    launchUnlockedCosmeticsButton->setText(QStringLiteral("Launch With All\nCosmetics"));
+    launchUnlockedCosmeticsButton->setText(QStringLiteral("推出所有化妆品"));
 
     launchButton->setEnabled(true);
     launchButton->setText(QStringLiteral("Launch"));
 
     launchNoCosmeticsButton->setEnabled(true);
-    launchNoCosmeticsButton->setText(QStringLiteral("Launch Without\nCosmetics"));
+    launchNoCosmeticsButton->setText(QStringLiteral("无化妆品"));
 }
 
 void MainWindow::launchNoCosmetics() {

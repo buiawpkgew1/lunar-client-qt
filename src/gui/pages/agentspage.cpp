@@ -124,7 +124,7 @@ AgentsPage::AgentsPage(Config& config, QWidget *parent) : ConfigurationPage(conf
 
 
 QString AgentsPage::title() {
-    return QStringLiteral("Agents");
+    return QStringLiteral("代理");
 }
 
 QIcon AgentsPage::icon() {
@@ -152,5 +152,5 @@ void AgentsPage::onSelect(const QItemSelection &selected, const QItemSelection &
 }
 
 QString AgentsPage::description() {
-    return "List of agents you want to use. Don't add any Forge/Fabric mods or else your game won't start.";
+    return "您要使用的代理列表。不要添加任何Forge/Fabric模组，否则您的游戏将无法启动.";
 }

@@ -1,4 +1,4 @@
-name: Build and Release
+name: 构建和发布
 
 on:
   push:
@@ -43,25 +43,25 @@ jobs:
         submodules: true
         fetch-depth: 0
 
-    - name: Fetch Tags
+    - name: 获取标签
       run: git fetch --prune --tags -f
 
-    - name: Configure CMake
+    - name: 配置 CMake
       run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
-    - name: Build
+    - name: 建造
       run: cmake --build . --config ${{env.BUILD_TYPE}}
 
-    - name: Move built files to new directory
+    - name: 将构建文件移动到新目录
       shell: powershell
       run: |
         mkdir 'Lunar Client Qt'
         mv -Path @('lunar-client-qt.exe';jq -r '.agentsDestDir' config.json) -Destination 'Lunar Client Qt'
 
-    - name: Package Qt
+    - name: 包 Qt
       run: windeployqt 'Lunar Client Qt' --compiler-runtime --no-angle --no-opengl-sw --no-virtualkeyboard --no-webkit2 --no-system-d3d-compiler --no-translations --no-quick-import
 
-    - name: Package additional dependencies
+    - name: 打包其他依赖项
       working-directory: 'Lunar Client Qt'
       run: >-
         ldd lunar-client-qt |
@@ -70,10 +70,10 @@ jobs:
         
         cp -t . /mingw64/bin/{libssl*,libcrypto*}.dll
 
-    - name: Compress
+    - name: 压缩
       run: zip -9 -r windows.zip 'Lunar Client Qt'
 
-    - name: Upload Artifiact
+    - name: 上传工件
       uses: actions/upload-artifact@v2
       with:
         name: windows

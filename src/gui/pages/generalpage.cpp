@@ -14,33 +14,16 @@
 
 #include "gui/widgets/filechooser.h"
 #include "gui/widgets/widgetutils.h"
-
-#ifndef _WIN32
-#include <unistd.h>
-unsigned long long getSystemMemory() {
-	long pages = sysconf(_SC_PHYS_PAGES);
-	long pageSize = sysconf(_SC_PAGE_SIZE);
-	return pages * pageSize;
-}
-#else
-#include <windows.h>
-unsigned long long getSystemMemory() {
-	MEMORYSTATUSEX status;
-	status.dwLength = sizeof(status);
-	GlobalMemoryStatusEx(&status);
-	return status.ullTotalPhys;
-}
-#endif
+#include "util/sysinfo.h"
 
 GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(config, parent) {
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(40);
 
-    keepMemorySame = new QCheckBox(QStringLiteral("保持初始和最大内存分配相同"));
+    keepMemorySame = new QCheckBox("保持初始和最大内存分配相同");
 
-    unsigned long long systemMemory = getSystemMemory();
-    size_t mibMemory = (size_t)(systemMemory / 1024 / 1024);
-    size_t pageStep = (size_t)(mibMemory / 16);
+    int mibMemory = SysInfo::totalRam() / 1024 / 1024;
+    int pageStep = mibMemory / 16;
 
     QLabel* initialMemoryLabel = new QLabel();
     initialMemory = new QSlider(Qt::Horizontal);
@@ -71,23 +54,23 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
     memorySliderContainer->addWidget(maxMemory);
 
     //Custom jre checkbox lineedit and button
-    useCustomJre = new QCheckBox(QStringLiteral("使用自定义 JRE"));
+    useCustomJre = new QCheckBox("使用自定义 JRE");
     jrePath = new FileChooser(QFileDialog::ExistingFile);
 
-    //Jvm arguments
+    //JVM 参数
     QVBoxLayout* jvmArgsGroup = new QVBoxLayout();
     jvmArgsGroup->setSpacing(6);
 
     jvmArgs = new QPlainTextEdit();
 
-    jvmArgsGroup->addWidget(new QLabel(QStringLiteral("JVM 参数")), 0, Qt::AlignHCenter);
+    jvmArgsGroup->addWidget(new QLabel("JVM 参数"), 0, Qt::AlignHCenter);
     jvmArgsGroup->addWidget(jvmArgs);
 
     //Checkboxes
-    QGroupBox* groupBox = new QGroupBox(QStringLiteral("启动后"));
+    QGroupBox* groupBox = new QGroupBox("启动后");
 
-    QRadioButton* stayOpen = new QRadioButton(QStringLiteral("保持启动器打开"));
-    closeOnLaunch = new QRadioButton(QStringLiteral("关闭启动器"));
+    QRadioButton* stayOpen = new QRadioButton("保持启动器打开");
+    closeOnLaunch = new QRadioButton("关闭启动器");
     stayOpen->setChecked(true);
 
     QVBoxLayout* radioLayout = new QVBoxLayout();
@@ -108,7 +91,7 @@ GeneralPage::GeneralPage(Config& config, QWidget *parent) : ConfigurationPage(co
 }
 
 QString GeneralPage::title() {
-    return QStringLiteral("设置");
+    return "设置";
 }
 
 QIcon GeneralPage::icon() {

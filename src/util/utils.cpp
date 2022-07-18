@@ -7,11 +7,12 @@
 #include <QStringList>
 #include <QDir>
 #include <QVersionNumber>
+#include <QDirIterator>
 
 #include "fs.h"
 
 QString Utils::getAgentFlags(const QString &name) {
-    return "-javaagent:" + FS::combinePaths(FS::getAgentsDirectory(), name);
+    return "-javaagent:" + FS::combinePaths(FS::agentsDirectory(), name);
 }
 
 QString Utils::getAgentFlags(const QString &name, const QString &option) {
@@ -19,37 +20,59 @@ QString Utils::getAgentFlags(const QString &name, const QString &option) {
 }
 
 QString Utils::getAssetsIndex(const QString &version) {
-    if(version == "1.7")
-        return "1.7.10";
+    auto split = version.split('.');
 
-    if(version.startsWith("1.18"))
-        return "1.18";
+    if (split.length() < 2) {
+        return version;
+    }
 
-    return version;
+    return split[0] + '.' + split[1];
 }
 
+void Utils::sortVersions(QStringList &versions) {
+    std::sort(versions.begin(), versions.end(), [](const QString& a, const QString& b){
+        return QVersionNumber::fromString(a) < QVersionNumber::fromString(b);
+    });
+}
 
-QStringList Utils::getOrderedAvailableVersions() {
-    QString lunarDir = FS::getLunarDirectory();
+QStringList Utils::getAvailableVersions() {
+    QDirIterator dirIt(
+            FS::combinePaths(
+                    FS::lunarDirectory(),
+                    "offline",
+                    "multiver"
+            ),
+            QDir::Files
+    );
 
-    QDir jreDir(FS::combinePaths(lunarDir, "jre"));
+    QStringList versions;
 
-    QStringList list = jreDir.entryList({"1.*"}, QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+    while(dirIt.hasNext()){
+        dirIt.next();
+        auto name = dirIt.fileInfo().baseName();
+        auto split = name.split('-');
+        if(split.isEmpty()) continue;
 
-    {
-        QDir offlineDir(FS::combinePaths(lunarDir, "offline"));
+        auto version = split.last();
 
-        QMutableStringListIterator it(list);
-        while(it.hasNext()){
-            if(!offlineDir.exists(it.next())){
-                it.remove();
-            }
+        if(version.startsWith("v1_")){
+            versions << dotVersion(version);
         }
     }
 
-    std::sort(list.begin(), list.end(), [](const QString& a, const QString& b){
-        return QVersionNumber::fromString(a) < QVersionNumber::fromString(b);
-    });
+    return versions;
+}
 
-    return list;
+QStringList Utils::getOrderedAvailableVersions() {
+    auto versions = getAvailableVersions();
+    sortVersions(versions);
+    return versions;
+}
+
+QString Utils::underscoreVersion(const QString &version) {
+    return 'v' + QString(version).replace('.', '_');
+}
+
+QString Utils::dotVersion(const QString &underscoreVersion) {
+    return underscoreVersion.mid(1).replace('_', '.');
 }

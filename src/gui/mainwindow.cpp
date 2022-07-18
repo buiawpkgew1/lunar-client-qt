@@ -23,7 +23,7 @@
 #include "util/utils.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::load()), offlineLauncher(config) {
-    setWindowTitle(QStringLiteral("Lunar Client Qt - Version: ") + BuildConfig::VERSION);
+    setWindowTitle("Lunar Client Qt - 版本: " + BuildConfig::VERSION);
     QGridLayout *mainLayout = new QGridLayout();
 
     pageList = new QListWidget();
@@ -93,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
 
 #ifdef INCLUDE_UPDATER
     QHBoxLayout *titleBtnLayout = new QHBoxLayout;
-    QPushButton *checkForUpdates = new QPushButton("Check for updates");
+    QPushButton *checkForUpdates = new QPushButton("检查更新");
     titleBtnLayout->addWidget(title, 1);
     titleBtnLayout->addWidget(checkForUpdates);
 
@@ -133,13 +133,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
 
 void MainWindow::resetLaunchButtons() {
     launchUnlockedCosmeticsButton->setEnabled(true);
-    launchUnlockedCosmeticsButton->setText(QStringLiteral("推出所有化妆品"));
+    launchUnlockedCosmeticsButton->setText("启动全部\n化妆品");
 
     launchButton->setEnabled(true);
-    launchButton->setText(QStringLiteral("Launch"));
+    launchButton->setText("Launch");
 
     launchNoCosmeticsButton->setEnabled(true);
-    launchNoCosmeticsButton->setText(QStringLiteral("无化妆品"));
+    launchNoCosmeticsButton->setText("不使用化妆品启动");
 }
 
 void MainWindow::launchNoCosmetics() {

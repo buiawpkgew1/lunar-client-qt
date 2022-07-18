@@ -12,28 +12,22 @@
 
 
 QString FS::combinePaths(const QString &a, const QString &b) {
-    return QDir::cleanPath(a + QDir::separator() + b);
+    return a + QDir::separator() + b;
 }
 
 QString FS::combinePaths(const QString &a, const QString &b, const QString &c) {
     return combinePaths(combinePaths(a, b), c);
 }
 
-
-
-QString FS::getLibsDirectory() {
-    return combinePaths(QApplication::applicationDirPath(), BuildConfig::LIBS_DIR);
-}
-
-QString FS::getAgentsDirectory() {
+QString FS::agentsDirectory() {
     return combinePaths(QApplication::applicationDirPath(), BuildConfig::AGENTS_DIR);
 }
 
-QString FS::getLunarDirectory() {
+QString FS::lunarDirectory() {
     return combinePaths(QDir::homePath(), ".lunarclient");
 }
 
-QString FS::getMinecraftDirectory() {
+QString FS::minecraftDirectory() {
     return combinePaths(
             QDir::homePath(),
 
@@ -45,4 +39,12 @@ QString FS::getMinecraftDirectory() {
             ".minecraft"
 #endif
     );
+}
+
+bool FS::clearDirectory(const QString &dir) {
+    QDir qdir(dir);
+    for(const auto& file : qdir.entryList(QDir::Files))
+        if(!qdir.remove(file))
+            return false;
+    return true;
 }

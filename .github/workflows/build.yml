@@ -23,19 +23,24 @@ jobs:
         shell: msys2 {0}
 
     steps:
+    - name: 安装 Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: 5.15.2
+        arch: win64_mingw81
+        archives: qtbase qtsvg qttools
+        setup-python: false
+
     - uses: msys2/setup-msys2@v2
       with:
-        update: true
-        msystem: MINGW64
+        release: false
+        update: false
+        msystem: mingw64
+        path-type: inherit
         install: >-
-          git
           zip
-          mingw-w64-x86_64-qt5-base
-          mingw-w64-x86_64-qt5-tools
-          mingw-w64-x86_64-qt5-svg
           mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-jq
-          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-make
           mingw-w64-x86_64-openssl
 
     - uses: actions/checkout@v3
@@ -47,10 +52,10 @@ jobs:
       run: git fetch --prune --tags -f
 
     - name: 配置 CMake
-      run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "MinGW Makefiles"
 
-    - name: 建造
-      run: cmake --build . --config ${{env.BUILD_TYPE}}
+    - name: Build
+      run: mingw32-make -j2
 
     - name: 将构建文件移动到新目录
       shell: powershell
@@ -61,14 +66,9 @@ jobs:
     - name: 包 Qt
       run: windeployqt 'Lunar Client Qt' --compiler-runtime --no-angle --no-opengl-sw --no-virtualkeyboard --no-webkit2 --no-system-d3d-compiler --no-translations --no-quick-import
 
-    - name: 打包其他依赖项
+    - name: 打包 OpenSSL
       working-directory: 'Lunar Client Qt'
-      run: >-
-        ldd lunar-client-qt |
-        sed -n 's/.*=> \(\/mingw64.*\) .*/\1/p' |
-        xargs cp -n -t .
-        
-        cp -t . /mingw64/bin/{libssl*,libcrypto*}.dll
+      run: cp -t . /mingw64/bin/{libssl*,libcrypto*}.dll
 
     - name: 压缩
       run: zip -9 -r windows.zip 'Lunar Client Qt'
@@ -92,19 +92,18 @@ jobs:
         run: git fetch --prune --tags -f
       
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2.14.0
+        uses: jurplel/install-qt-action@v3
         with:
           version: '5.15.2'
-          host: 'mac'
-          target: 'desktop'
           arch: 'clang_64'
           setup-python: 'false'
+          archives: qtbase qtsvg qttools
         
       - name: Configure CMake
         run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
-        run: make
+        run: make -j3
         
       - name: Package Dependencies
         run: |
@@ -146,13 +145,13 @@ jobs:
         run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         
       - name: Build
-        run: make
+        run: make -j2
 
       - name: Compress
         run: |
-          mkdir Lunar\ Client\ Qt
-          jq '.agentsDestDir' config.json | xargs mv -t Lunar\ Client\ Qt/ lunar-client-qt
-          tar czvf linux.tar.gz Lunar\ Client\ Qt/
+          mkdir 'Lunar Client Qt'
+          jq '.agentsDestDir' config.json | xargs mv -t 'Lunar Client Qt' lunar-client-qt
+          tar czvf linux.tar.gz 'Lunar Client Qt'
 
       - uses: actions/upload-artifact@v2
         with:

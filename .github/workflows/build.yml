@@ -173,7 +173,6 @@ jobs:
       id: variables
       run: |
         echo "::set-output name=version::${GITHUB_REF_NAME#v}"
-
     - name: Create Release
       uses: softprops/action-gh-release@v0.1.14
       with:

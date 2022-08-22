@@ -74,7 +74,7 @@ jobs:
       run: zip -9 -r windows.zip 'Lunar Client Qt'
 
     - name: Upload Artifiact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: windows
         path: ./windows.zip
@@ -113,7 +113,7 @@ jobs:
         run: |
           tar -czvf mac.tar.gz lunar-client-qt.app
           
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: mac
           path: ./mac.tar.gz
@@ -153,7 +153,7 @@ jobs:
           jq '.agentsDestDir' config.json | xargs mv -t 'Lunar Client Qt' lunar-client-qt
           tar czvf linux.tar.gz 'Lunar Client Qt'
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: linux
           path: ./linux.tar.gz

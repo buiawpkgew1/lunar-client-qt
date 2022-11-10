@@ -106,7 +106,7 @@ bool OfflineLauncher::launch() {
     if(config.useCosmetics)
         args << "--texturesDir" << FS::combinePaths(FS::getLunarDirectory(), "textures");
 
-    if (config.joinServerOnLaunch)
+    if(config.joinServerOnLaunch)
         args << "--server" << config.serverIp;
 
     process.setArguments(args);
@@ -124,7 +124,7 @@ bool OfflineLauncher::launch() {
     process.setStandardOutputFile(FS::combinePaths(QCoreApplication::applicationDirPath(), "latest.log"), QIODevice::Truncate);
     process.setStandardErrorFile(FS::combinePaths(QCoreApplication::applicationDirPath(), "error.log"), QIODevice::Truncate);
 
-    if (!process.startDetached()) {
+    if(!process.startDetached()){
         emit error("Failed to start process: " + process.errorString());
         return false;
     }

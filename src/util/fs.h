@@ -11,12 +11,11 @@ namespace FS {
     QString combinePaths(const QString& a, const QString& b);
     QString combinePaths(const QString& a, const QString& b, const QString& c);
 
-    QString agentsDirectory();
+    QString getLibsDirectory();
+    QString getAgentsDirectory();
 
-    QString lunarDirectory();
-    QString minecraftDirectory();
-
-    bool clearDirectory(const QString& dir);
+    QString getLunarDirectory();
+    QString getMinecraftDirectory();
 };
 
 

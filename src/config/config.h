@@ -28,6 +28,7 @@ public:
 class Config {
 public:
     QString gameVersion;
+    QString modLoader;
 
 
     bool keepMemorySame;
@@ -47,11 +48,26 @@ public:
     bool joinServerOnLaunch;
     QString serverIp;
 
+    bool useAutoggMessage;
+    QString autoggMessage;
+
+    bool useLevelHeadPrefix;
+    QString levelHeadPrefix;
+
+    bool useLevelHeadNick;
+    int levelHeadNickLevel;
+
+    bool useBetterHurtCam;
+    double betterHurtCamValue;
+
     int windowWidth;
     int windowHeight;
 
+    bool useCosmetics;
+    bool unlockCosmetics;
 
     QList<Agent> agents;
+    QStringList helpers;
 public:
     void save();
     static Config load();

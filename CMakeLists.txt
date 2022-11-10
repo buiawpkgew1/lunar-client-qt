@@ -8,32 +8,42 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# ----------------------- Options -------------------------
-
-option(USE_QT6 "Use Qt 6 instead of Qt 5" OFF)
 option(INCLUDE_UPDATER "Include update checker" ON)
 
-if(USE_QT6)
-    set(QT_VER Qt6)
-else()
+set(QT_COMPONENTS Core Gui Widgets Svg)
+
+
+find_package(Qt6 COMPONENTS
+        ${QT_COMPONENTS}
+        )
+if (NOT Qt6_FOUND)
+    find_package(Qt5 COMPONENTS
+            ${QT_COMPONENTS}
+            REQUIRED
+            )
     set(QT_VER Qt5)
+else()
+set(QT_VER Qt6)
 endif()
 
 # ---------------------------- Get current version and tag --------------------------------
-
 set(LCQT_VERSION Unknown)
 set(LCQT_VERSION_TAG Unknown)
 
 find_package(Git)
 if(Git_FOUND)
     execute_process(
-            COMMAND ${GIT_EXECUTABLE} describe --match "v[0-9]*"
+            COMMAND ${GIT_EXECUTABLE} describe --tags --match "v[0-9]*"
             OUTPUT_VARIABLE tag
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
+            message(STATUS "Tag: ${tag}")
 
     if(tag MATCHES "^v([0-9]+)\\.([0-9]+)\\.([0-9]+)")
-        set(LCQT_VERSION ${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3})
+            set(LCQT_VERSION ${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3})
+        if(tag MATCHES "^v([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+)")
+            set(LCQT_VERSION ${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}.${CMAKE_MATCH_4})
+        endif()
         set(LCQT_VERSION_TAG v${LCQT_VERSION})
 
         message(STATUS "Found version tag: ${LCQT_VERSION_TAG}")
@@ -75,6 +85,8 @@ set(SOURCE_FILES
         src/gui/pages/configurationpage.h
         src/gui/pages/agentspage.cpp
         src/gui/pages/agentspage.h
+        src/gui/pages/helperspage.cpp
+        src/gui/pages/helperspage.h
         src/launch/launcher.h
         src/launch/launcher.cpp
         src/config/config.cpp

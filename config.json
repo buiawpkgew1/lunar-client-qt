@@ -1,4 +1,5 @@
 {
   "agentsDestDir": "agents (DON'T TOUCH)",
-  "githubReleaseApiLink": "https://api.github.com/repos/Nilsen84/lunar-client-qt/releases"
+  "libsDestDir": "libs (DON'T TOUCH)",
+  "githubReleaseApiLink": "https://api.github.com/repos/Youded-byte/lunar-client-qt/releases"
 }

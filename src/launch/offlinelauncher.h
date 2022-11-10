@@ -15,19 +15,12 @@ Q_OBJECT
 public:
     explicit OfflineLauncher(const Config& config, QObject* parent = nullptr);
 
-    bool launch(CosmeticsState cosmeticsState) override;
+    bool launch();
 signals:
     void error(const QString& message);
 private:
-    struct LaunchFiles {
-        QStringList classPath;
-        QStringList externalFiles;
-        QString natives;
-    };
-
-    LaunchFiles gatherLaunchFiles(const QString& workingDir);
-
-    QString findJavaExecutable();
+    static QString findJavaExecutable();
+    static void HelperLaunch(const QString& helper);
 };
 
 

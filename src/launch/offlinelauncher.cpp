@@ -4,49 +4,23 @@
 
 #include "offlinelauncher.h"
 
+#include <QCoreApplication>
 #include <QProcess>
 #include <QDir>
 #include <QDirIterator>
 #include <QStandardPaths>
 #include <QTemporaryFile>
 #include <QElapsedTimer>
-#include <QVersionNumber>
-#include <quazip.h>
-#include <JlCompress.h>
+#include <QIODevice>
 
 #include "util/fs.h"
 #include "util/utils.h"
 
-OfflineLauncher::OfflineLauncher(const Config &config, QObject *parent) : Launcher(config, parent) {
+OfflineLauncher::OfflineLauncher(const Config& config, QObject *parent) : Launcher(config, parent) {
 }
 
-OfflineLauncher::LaunchFiles OfflineLauncher::gatherLaunchFiles(const QString& workingDir){
-    LaunchFiles launchFiles;
 
-    QDirIterator dirIt(workingDir, QDir::Files);
-
-    auto version = Utils::underscoreVersion(config.gameVersion);
-
-    while(dirIt.hasNext()){
-        auto path = dirIt.next();
-        auto name = dirIt.fileName();
-
-        if(!name.contains(version) && name.contains("v1_"))
-            continue;
-
-        if(name.startsWith("OptiFine")){
-            launchFiles.externalFiles << path;
-        }else if(name.endsWith(".zip") && name.contains("natives")){
-            launchFiles.natives = path;
-        }else {
-            launchFiles.classPath << path;
-        }
-    }
-
-    return launchFiles;
-}
-
-bool OfflineLauncher::launch(CosmeticsState cosmeticsState) {
+bool OfflineLauncher::launch() {
     if (config.gameVersion.isEmpty()) {
         emit error("No version selected!\nDo you have lunar installed?");
         return false;
@@ -55,62 +29,82 @@ bool OfflineLauncher::launch(CosmeticsState cosmeticsState) {
     QProcess process;
     process.setProgram(config.useCustomJre ? config.customJrePath : findJavaExecutable());
 
+    process.setStandardInputFile(QProcess::nullDevice());
+    process.setStandardOutputFile(QProcess::nullDevice());
+    process.setStandardErrorFile(QProcess::nullDevice());
+
     QString workingDir = FS::combinePaths(
-        FS::lunarDirectory(),
+        FS::getLunarDirectory(),
         "offline",
         "multiver"
     );
 
     process.setWorkingDirectory(workingDir);
 
-    QString natives = FS::combinePaths(workingDir, "natives");
-    FS::clearDirectory(natives);
+    QStringList workingDirFiles = QDir(workingDir).entryList(QDir::Files, QDir::Time | QDir::Reversed);
 
-    auto [cp, externalFiles, nativesZip] = gatherLaunchFiles(workingDir);
+    QFileInfoList libsList = QDir(FS::getLibsDirectory()).entryInfoList(QDir::Files);
 
-    QuaZip zip(nativesZip);
-    JlCompress::extractDir(zip, natives);
+    QStringList classPath = Utils::getClassPath(workingDirFiles, config.gameVersion, config.modLoader);
 
+    QStringList ichorClassPath = classPath;
+
+    QString nativesFile = Utils::getNativesFile(workingDirFiles, config.gameVersion);
+
+    for(const QFileInfo& info : libsList) {
+        classPath << info.absoluteFilePath();
+    }
 
     QStringList args{
-            "--add-modules", "jdk.naming.dns",
-            "--add-exports", "jdk.naming.dns/com.sun.jndi.dns=java.naming",
-            "-Djna.boot.library.path=natives",
-            "-Dlog4j2.formatMsgNoLookups=true",
-            "--add-opens", "java.base/java.io=ALL-UNNAMED",
-            QString("-Xms%1m").arg(config.initialMemory),
-            QString("-Xmx%1m").arg(config.maximumMemory),
-            "-Djava.library.path=natives",
-            "-cp", cp.join(QDir::listSeparator())
+         "--add-modules", "jdk.naming.dns",
+         "--add-exports", "jdk.naming.dns/com.sun.jndi.dns=java.naming",
+         "-Djna.boot.library.path=" + nativesFile,
+         "-Dlog4j2.formatMsgNoLookups=true",
+         "--add-opens", "java.base/java.io=ALL-UNNAMED",
+         QString("-Xms%1m").arg(config.initialMemory),
+         QString("-Xmx%1m").arg(config.maximumMemory),
+         "-Djava.library.path=" + nativesFile,
+         "-cp", classPath.join(QDir::listSeparator())
     };
 
-    for (const Agent &agent: config.agents)
-        if (agent.enabled)
+    args << Utils::getAgentFlags("NativesPrepare", nativesFile);
+
+    for(const Agent& agent : config.agents)
+        if(agent.enabled)
             args << "-javaagent:" + agent.path + '=' + agent.option;
 
-    if (cosmeticsState == CosmeticsState::UNLOCKED)
+    if(config.useLevelHeadPrefix || config.useLevelHeadNick)
+        args << Utils::getAgentFlags("LevelHeadImproved", getLevelHeadOptions(config.useLevelHeadPrefix, config.levelHeadPrefix, config.useLevelHeadNick, QString::number(config.levelHeadNickLevel)));
+
+    if(config.useAutoggMessage)
+        args << Utils::getAgentFlags("CustomAutoGG", config.autoggMessage);
+
+    if (config.useBetterHurtCam)
+        args << Utils::getAgentFlags("LunarBetterHurtCam", QString::number(config.betterHurtCamValue));
+
+    if(config.useCosmetics && config.unlockCosmetics)
         args << Utils::getAgentFlags("UnlockCosmetics");
 
     args << QProcess::splitCommand(config.jvmArgs);
 
     args << QStringList{
             "com.moonsworth.lunar.genesis.Genesis",
-            "--version", config.gameVersion,
+            "--version", Utils::getGameVersion(config.gameVersion),
             "--accessToken", "0",
             "--assetIndex", Utils::getAssetsIndex(config.gameVersion),
             "--userProperties", "{}",
-            "--gameDir", config.useCustomMinecraftDir ? config.customMinecraftDir : FS::minecraftDirectory(),
-            "--launcherVersion", "2.12.7",
+            "--gameDir", config.useCustomMinecraftDir ? config.customMinecraftDir : FS::getMinecraftDirectory(),
+            "--launcherVersion", "2.13.0",
             "--width", QString::number(config.windowWidth),
             "--height", QString::number(config.windowHeight),
             "--workingDirectory", ".",
             "--classpathDir", ".",
-            "--ichorClassPath", cp.join(','),
-            "--ichorExternalFiles", externalFiles.join(',')
+            "--ichorClassPath", ichorClassPath.join(QString(",")),
+            "--ichorExternalFiles", Utils::getExternalFiles(workingDirFiles, config.gameVersion, config.modLoader).join(QString(","))
     };
 
-    if (cosmeticsState != CosmeticsState::OFF)
-        args << "--texturesDir" << FS::combinePaths(FS::lunarDirectory(), "textures");
+    if(config.useCosmetics)
+        args << "--texturesDir" << FS::combinePaths(FS::getLunarDirectory(), "textures");
 
     if (config.joinServerOnLaunch)
         args << "--server" << config.serverIp;
@@ -121,75 +115,70 @@ bool OfflineLauncher::launch(CosmeticsState cosmeticsState) {
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.remove("windir");
+    env.remove("JAVA_OPTS");
+    env.remove("_JAVA_OPTS");
+    env.remove("JAVA_OPTIONS");
+    env.remove("_JAVA_OPTIONS");
 
     process.setProcessEnvironment(env);
+    process.setStandardOutputFile(FS::combinePaths(QCoreApplication::applicationDirPath(), "latest.log"), QIODevice::Truncate);
+    process.setStandardErrorFile(FS::combinePaths(QCoreApplication::applicationDirPath(), "error.log"), QIODevice::Truncate);
 
     if (!process.startDetached()) {
         emit error("Failed to start process: " + process.errorString());
         return false;
     }
 
+    if (!config.helpers.isEmpty())
+    {
+        foreach(const QString & path, config.helpers)
+            HelperLaunch(path);
+    }
+
     return true;
 }
 
-struct JavaExe {
-    QVersionNumber version;
-    QString exe;
-};
+QString OfflineLauncher::findJavaExecutable() {
+    QDir jreDir = QDir(FS::combinePaths(FS::getLunarDirectory(), "jre"));
 
-QVersionNumber getJreVersion(const QString& jreDirectoryName){
-    auto split = jreDirectoryName.split('-');
+    QFileInfoList jreSubDirs = jreDir.entryInfoList(QDir::Dirs, QDir::Time | QDir::Reversed);
 
-    for(const auto& str : split){
-        if(str.startsWith("jre") || str.startsWith("jdk")){
-            return QVersionNumber::fromString(str.mid(3));
-        }
-    }
+    for (int i = jreSubDirs.size() - 1; i > 0; i--) {
+        const QFileInfo& jreSubDir = jreSubDirs[i];
 
-    return {0};
-}
+        if (jreSubDir.fileName().length() != 40)
+            continue;
 
-QList<JavaExe> getAvailableJres(){
-    QList<JavaExe> jres;
+        QFileInfoList jreSubDirSubDirs = QDir(jreSubDir.absoluteFilePath()).entryInfoList(QDir::Dirs, QDir::Time | QDir::Reversed);
 
-    QDirIterator topIt(FS::combinePaths(FS::lunarDirectory(), "jre"), QDir::Dirs);
-    while(topIt.hasNext()){
-        auto next = topIt.next();
-
-        QDirIterator jreIt(next, QDir::Dirs);
-        while(jreIt.hasNext()){
-            QString potentialExe = FS::combinePaths(
-                    jreIt.next(),
-                    "bin",
+        for (const QFileInfo& jreSubDirSubDir : jreSubDirSubDirs) {
+            QString potentialExecutable = FS::combinePaths(
+                jreSubDirSubDir.absoluteFilePath(),
+                "bin",
 #ifdef Q_OS_WIN
-                    "javaw.exe"
+                "javaw.exe"
 #else
-                    "java"
+                "java"
 #endif
+
             );
 
-            if(QFileInfo(potentialExe).isExecutable()){
-                jres.append({getJreVersion(jreIt.fileName()), potentialExe});
-            }
+            if (QFileInfo(potentialExecutable).isExecutable())
+                return potentialExecutable;
         }
     }
 
-    return jres;
+    return {};
 }
 
-QString OfflineLauncher::findJavaExecutable() {
-    auto jres = getAvailableJres();
-    if(jres.isEmpty()) return {};
-
-    std::sort(jres.begin(), jres.end(), [](const JavaExe& a, const JavaExe& b){
-        return a.version > b.version;
-    });
-
-    if(config.gameVersion == "1.7" || config.gameVersion == "1.8" || config.gameVersion == "1.12"){
-        for(const auto& jre : jres){
-            if(jre.version.majorVersion() == 16) return jre.exe;
-        }
-    }
-
-    return jres.first().exe;
+void OfflineLauncher::HelperLaunch(const QString& helper) {
+    QProcess process;
+#ifdef Q_OS_WIN
+    process.setCreateProcessArgumentsModifier(([] (QProcess::CreateProcessArguments* args)
+    {
+        args->flags |= 0x00000010; //CREATE_NEW_CONSOLE
+    }));
+#endif
+    process.setProgram(helper);
+    process.startDetached(); 
 }

@@ -9,6 +9,7 @@
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QSlider>
 
 #include "gui/widgets/filechooser.h"
 
@@ -31,6 +32,21 @@ private:
 
     QCheckBox* joinServerOnLaunch;
     QLineEdit* serverToJoin;
+
+    QCheckBox* useLevelHeadPrefix;
+    QLineEdit* levelHeadPrefix;
+
+    QCheckBox* useLevelHeadNick;
+    QLineEdit* levelHeadNickLevel;
+
+    QCheckBox* useBetterHurtCam;
+    QSlider* betterHurtCamValue;
+
+    QCheckBox* useAutoggMessage;
+    QLineEdit* autoggMessage;
+
+    QCheckBox* useCosmetics;
+    QCheckBox* unlockCosmetics;
 
     QSpinBox* windowWidth;
     QSpinBox* windowHeight;

@@ -4,6 +4,7 @@
 
 #include "mainwindow.h"
 
+#include <QCoreApplication>
 #include <QGridLayout>
 #include <QListWidgetItem>
 #include <QComboBox>
@@ -12,6 +13,8 @@
 #include <QStandardPaths>
 #include <QJsonDocument>
 #include <QMessageBox>
+#include <QFileSystemModel>
+#include <QIODevice>
 #include <QLabel>
 
 #include "pages/configurationpage.h"
@@ -20,11 +23,37 @@
 #include "launch/launcher.h"
 #include "buildconfig.h"
 #include "widgets/widgetutils.h"
+#include "util/fs.h"
 #include "util/utils.h"
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::load()), offlineLauncher(config) {
-    setWindowTitle("Lunar Client Qt - Version: " + BuildConfig::VERSION);
-    QGridLayout *mainLayout = new QGridLayout();
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::load()), offlineLauncher(config){
+    setWindowTitle(QStringLiteral("Lunar Client Qt v") + BuildConfig::VERSION);
+    static QString icon = FS::combinePaths(QCoreApplication::applicationDirPath(), QStringLiteral("icon.ico"));
+    if (QFile::exists(icon))
+        setWindowIcon(QIcon(icon));
+    else {
+        QString lcloc =
+#if defined(Q_OS_WIN)
+            QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QStringLiteral("/Programs/lunarclient/Lunar Client.exe");
+#elif defined(Q_OS_DARWIN)
+            QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/lunarclient/Lunar Client"; //Need location
+#else
+            QDir::homePath() + "/lunarclient/Lunar Client"; // Need location
+#endif
+        QFileInfo fin(lcloc);
+        QFileSystemModel* model = new QFileSystemModel;
+        QIcon ic = model->fileIcon(model->index(fin.filePath()));
+        QPixmap pixmap = ic.pixmap(ic.actualSize(QSize(1028, 1028)));
+        setWindowIcon(pixmap);
+        QFile file(icon);
+        file.open(QIODevice::WriteOnly);
+        pixmap.save(&file, "ICO");
+    }
+    
+
+    QWidget* centralWidget = new QWidget();
+
+    QGridLayout* mainLayout = new QGridLayout();
 
     pageList = new QListWidget();
     pageStack = new QStackedWidget();
@@ -34,9 +63,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
     pageList->setIconSize(QSize(32, 32));
 
     pages = {
-            new GeneralPage(config),
-            new MinecraftPage(config),
-            new AgentsPage(config)
+        new GeneralPage(config),
+        new MinecraftPage(config),
+        new AgentsPage(config),
+        new HelpersPage(config)
     };
 
     for(ConfigurationPage* page : pages){
@@ -56,17 +86,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
     versionSelect = new QComboBox();
     versionSelect->addItems(Utils::getOrderedAvailableVersions());
 
-    launchUnlockedCosmeticsButton = new QPushButton;
-    launchUnlockedCosmeticsButton->setMinimumHeight(45);
-    connect(launchUnlockedCosmeticsButton, &QPushButton::clicked, this, &MainWindow::launchUnlockedCosmetics);
-
-    launchNoCosmeticsButton = new QPushButton();
-    launchNoCosmeticsButton->setMinimumHeight(45);
-    connect(launchNoCosmeticsButton, &QPushButton::clicked, this, &MainWindow::launchNoCosmetics);
+    modLoaderSelect = new QComboBox();
+    modLoaderSelect->addItems(Utils::getAvailableModLoaders(versionSelect->currentText()));
+    connect(versionSelect, &QComboBox::currentTextChanged, [&](const QString text) {modLoaderSelect->clear(); modLoaderSelect->addItems(Utils::getAvailableModLoaders(text));});
 
     launchButton = new QPushButton();
-    launchButton->setMinimumHeight(45);
-    connect(launchButton, &QPushButton::clicked, this, &MainWindow::launchDefault);
+    launchButton->setMinimumHeight(80);
+    connect(launchButton, &QPushButton::clicked, this, &MainWindow::launch);
 
     connect(&offlineLauncher, &OfflineLauncher::error, this, &MainWindow::errorCallback);
 
@@ -74,8 +100,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
 
     mainLayout->addWidget(pageList);
     mainLayout->addWidget(versionSelect, 1, 0);
-    mainLayout->addWidget(launchUnlockedCosmeticsButton, 2, 0);
-    mainLayout->addWidget(launchNoCosmeticsButton, 3, 0);
+    mainLayout->addWidget(modLoaderSelect, 2, 0);
     mainLayout->addWidget(launchButton, 4, 0);
 
 
@@ -132,35 +157,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), config(Config::lo
 }
 
 void MainWindow::resetLaunchButtons() {
-    launchUnlockedCosmeticsButton->setEnabled(true);
-    launchUnlockedCosmeticsButton->setText("Launch With All\nCosmetics");
-
     launchButton->setEnabled(true);
-    launchButton->setText("Launch");
-
-    launchNoCosmeticsButton->setEnabled(true);
-    launchNoCosmeticsButton->setText("Launch Without\nCosmetics");
-}
-
-void MainWindow::launchNoCosmetics() {
-    launch(offlineLauncher, Launcher::CosmeticsState::OFF);
-}
-
-void MainWindow::launchDefault() {
-    launch(offlineLauncher, Launcher::CosmeticsState::DEFAULT);
-}
-
-void MainWindow::launchUnlockedCosmetics() {
-    launch(offlineLauncher, Launcher::CosmeticsState::UNLOCKED);
+    launchButton->setText(QStringLiteral("Launch"));
 }
 
 
-void MainWindow::launch(Launcher &launcher, Launcher::CosmeticsState cosmeticsState) {
+void MainWindow::launch(){
     apply();
-    if(!launcher.launch(cosmeticsState))
-        return;
-
-    if (config.closeOnLaunch)
+    offlineLauncher.launch();
+    if(config.closeOnLaunch)
         close();
 }
 
@@ -175,6 +180,7 @@ void MainWindow::apply() {
         page->apply();
     }
     config.gameVersion = versionSelect->currentText();
+    config.modLoader = modLoaderSelect->currentText();
 }
 
 void MainWindow::load() {
@@ -182,6 +188,7 @@ void MainWindow::load() {
         page->load();
     }
     versionSelect->setCurrentText(config.gameVersion);
+    modLoaderSelect->setCurrentText(config.modLoader);
 }
 
 

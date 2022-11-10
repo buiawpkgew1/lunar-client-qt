@@ -6,6 +6,7 @@
 
 #include <QStandardPaths>
 #include <QJsonObject>
+#include <QProcess>
 #include <QJsonArray>
 #include <QFileInfo>
 #include <QDir>
@@ -18,6 +19,7 @@ void Config::save() {
     QJsonObject saveObj;
 
     saveObj["version"] = gameVersion;
+    saveObj["modLoader"] = modLoader;
 
     saveObj["keepMemorySame"] = keepMemorySame;
     saveObj["initialMemory"] = initialMemory;
@@ -36,9 +38,23 @@ void Config::save() {
     saveObj["joinServerOnLaunch"] = joinServerOnLaunch;
     saveObj["serverIp"] = serverIp;
 
+    saveObj["useLevelHeadPrefix"] = useLevelHeadPrefix;
+    saveObj["levelHeadPrefix"] = levelHeadPrefix;
+
+    saveObj["useLevelHeadNick"] = useLevelHeadNick;
+    saveObj["levelHeadNickLevel"] = levelHeadNickLevel;
+
+    saveObj["useBetterHurtCam"] = useBetterHurtCam;
+    saveObj["betterHurtCamValue"] = betterHurtCamValue;
+
+    saveObj["useAutoggMessage"] = useAutoggMessage;
+    saveObj["autoggMessage"] = autoggMessage;
+
+    saveObj["useCosmetics"] = useCosmetics;
+    saveObj["unlockCosmetics"] = unlockCosmetics;
+
     saveObj["windowWidth"] = windowWidth;
     saveObj["windowHeight"] = windowHeight;
-
 
     QJsonArray arr;
     for(const Agent& agent : agents){
@@ -52,6 +68,12 @@ void Config::save() {
 
     saveObj["agents"] = arr;
 
+    QJsonArray arr2;
+    foreach(const QString& str, helpers) {
+        arr2.append(str);
+    }
+
+    saveObj["helpers"] = arr2;
     saveJsonToConfig(saveObj);
 }
 
@@ -79,11 +101,25 @@ Config Config::load() {
         }
     }
 
+    arr.empty();
+    arr = jsonObj["helpers"].toArray();
+
+    QStringList helpers;
+
+    foreach(const QJsonValue& val, arr) {
+        QString path = val.toString();
+        if (QFile::exists(path)) {
+            helpers.append(path);
+        }
+    }
+
+
     return {
         jsonObj["version"].toString("1.8"),
+        jsonObj["modLoader"].toString("Optifine"),
         jsonObj["keepMemorySame"].toBool(true),
-        jsonObj["initialMemory"].toInt(4096),
-        jsonObj["maxMemory"].toInt(4096),
+        jsonObj["initialMemory"].toInt(3072),
+        jsonObj["maxMemory"].toInt(3072),
         jsonObj["useCustomJre"].toBool(false),
         jsonObj["customJrePath"].toString(),
         jsonObj["jvmArgs"].toString(),
@@ -92,9 +128,20 @@ Config Config::load() {
         jsonObj["customMinecraftDir"].toString(),
         jsonObj["joinServerOnLaunch"].toBool(false),
         jsonObj["serverIp"].toString(),
+        jsonObj["useAutoggMessage"].toBool(false),
+        jsonObj["autoggMessage"].toString(),
+        jsonObj["useLevelHeadPrefix"].toBool(false),
+        jsonObj["levelHeadPrefix"].toString(),
+        jsonObj["useLevelHeadNick"].toBool(false),
+        jsonObj["levelHeadNickLevel"].toInt(-1),
+        jsonObj["useBetterHurtCam"].toBool(false),
+        jsonObj["betterHurtCamValue"].toDouble(6),
         jsonObj["windowWidth"].toInt(640),
         jsonObj["windowHeight"].toInt(480),
-        agents
+        jsonObj["useCosmetics"].toBool(true),
+        jsonObj["unlockCosmetics"].toBool(false),
+        agents,
+        helpers
     };
 }
 

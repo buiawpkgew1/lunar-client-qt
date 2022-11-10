@@ -16,77 +16,66 @@ jobs:
   build_windows:
     name: "Windows Build"
 
-    runs-on: windows-latest
-
-    defaults:
-      run:
-        shell: msys2 {0}
+    runs-on: windows-2022
 
     steps:
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: 5.15.2
-        arch: win64_mingw81
-        archives: qtbase qtsvg qttools
-        setup-python: false
-
-    - uses: msys2/setup-msys2@v2
-      with:
-        release: false
-        update: false
-        msystem: mingw64
-        path-type: inherit
-        install: >-
-          zip
-          mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-make
-          mingw-w64-x86_64-openssl
-
     - uses: actions/checkout@v3
-      with:
-        submodules: true
-        fetch-depth: 0
 
     - name: Fetch Tags
       run: git fetch --prune --tags -f
+      
+    - name: Install Qt & MinGW
+      uses: jurplel/install-qt-action@v3
+      with:
+        aqtversion: '==2.1.*'
+        version: '6.2.1'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw81'
+        tools: 'tools_mingw,qt.tools.win64_mingw810'
+
+    - name: Install OpenSSL
+      shell: powershell
+      run: |
+        Get-ChildItem "$env:VCPKG_INSTALLATION_ROOT\triplets\" -Recurse -Include *.cmake | Add-Content -Value "`nset(VCPKG_BUILD_TYPE release)"
+        vcpkg install openssl:x64-mingw-dynamic
 
     - name: Configure CMake
       run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "MinGW Makefiles"
 
     - name: Build
-      run: mingw32-make -j2
+      run: cmake --build . --config ${{env.BUILD_TYPE}}
 
     - name: Move built files to new directory
       shell: powershell
       run: |
         mkdir 'Lunar Client Qt'
-        mv -Path @('lunar-client-qt.exe';jq -r '.agentsDestDir' config.json) -Destination 'Lunar Client Qt'
+        mv -Path @('lunar-client-qt.exe';jq -r '.agentsDestDir,.libsDestDir' config.json) -Destination 'Lunar Client Qt'
 
     - name: Package Qt
-      run: windeployqt 'Lunar Client Qt' --compiler-runtime --no-angle --no-opengl-sw --no-virtualkeyboard --no-webkit2 --no-system-d3d-compiler --no-translations --no-quick-import
+      shell: bash
+      run: |
+        PATH="$IQTA_TOOLS/mingw810_64/bin":$PATH windeployqt Lunar\ Client\ Qt/ --compiler-runtime --no-opengl-sw --no-virtualkeyboard --no-system-d3d-compiler --no-translations --no-quick-import
 
     - name: Package OpenSSL
-      working-directory: 'Lunar Client Qt'
-      run: cp -t . /mingw64/bin/{libssl*,libcrypto*}.dll
+      shell: powershell
+      run: Get-ChildItem -Path "$env:VCPKG_INSTALLATION_ROOT\packages\openssl_x64-mingw-dynamic\bin\*" -Include *.dll | Copy-Item -Destination "Lunar Client Qt"
 
     - name: Compress
-      run: zip -9 -r windows.zip 'Lunar Client Qt'
+      shell: powershell
+      run: Compress-Archive -Path 'Lunar Client Qt' -DestinationPath windows.zip
 
     - name: Upload Artifiact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: windows
         path: ./windows.zip
   build_mac:
     name: "MacOS Build"
-    runs-on: macos-10.15
+    runs-on: macos-11
     
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
 
       - name: Fetch Tags
         run: git fetch --prune --tags -f
@@ -94,16 +83,17 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
-          version: '5.15.2'
+          version: '6.2.2'
+          host: 'mac'
+          target: 'desktop'
           arch: 'clang_64'
           setup-python: 'false'
-          archives: qtbase qtsvg qttools
         
       - name: Configure CMake
         run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
-        run: make -j3
+        run: make
         
       - name: Package Dependencies
         run: |
@@ -113,7 +103,7 @@ jobs:
         run: |
           tar -czvf mac.tar.gz lunar-client-qt.app
           
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v2
         with:
           name: mac
           path: ./mac.tar.gz
@@ -131,9 +121,6 @@ jobs:
           pacman -Syu --noconfirm --needed qt5-base qt5-svg cmake base-devel git jq
 
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
 
       - name: Mark Repository as Safe
         run: git config --global safe.directory "$GITHUB_WORKSPACE"
@@ -145,15 +132,15 @@ jobs:
         run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         
       - name: Build
-        run: make -j2
+        run: make
 
       - name: Compress
         run: |
-          mkdir 'Lunar Client Qt'
-          jq '.agentsDestDir' config.json | xargs mv -t 'Lunar Client Qt' lunar-client-qt
-          tar czvf linux.tar.gz 'Lunar Client Qt'
+          mkdir Lunar\ Client\ Qt
+          jq '.agentsDestDir,.libsDestDir' config.json | xargs mv -t Lunar\ Client\ Qt/ lunar-client-qt
+          tar czvf linux.tar.gz Lunar\ Client\ Qt/
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v2
         with:
           name: linux
           path: ./linux.tar.gz
@@ -173,8 +160,9 @@ jobs:
       id: variables
       run: |
         echo "::set-output name=version::${GITHUB_REF_NAME#v}"
+
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v0.1.14
       with:
         name: ${{ steps.variables.outputs.version }}
         draft: true

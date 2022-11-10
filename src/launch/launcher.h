@@ -11,15 +11,12 @@
 class Launcher : public QObject {
 Q_OBJECT
 public:
-    enum class CosmeticsState {
-        OFF,
-        DEFAULT,
-        UNLOCKED
-    };
 
     Launcher(const Config& config, QObject* parent);
 
-    virtual bool launch(CosmeticsState cosmeticsState) = 0;
+    virtual bool launch() = 0;
+
+    static QString getLevelHeadOptions(const bool& uselevelheadprefix, const QString& levelheadprefix, const bool& uselevelheadnicklevel, const QString& levelheadnicklevel);
 protected:
     const Config& config;
 };

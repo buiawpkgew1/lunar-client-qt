@@ -72,7 +72,7 @@ jobs:
         path: ./windows.zip
   build_mac:
     name: "MacOS Build"
-    runs-on: macos-11
+    runs-on: macos-13
     
     steps:
       - uses: actions/checkout@v3

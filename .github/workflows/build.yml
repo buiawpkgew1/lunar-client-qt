@@ -19,7 +19,7 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Fetch Tags
       run: git fetch --prune --tags -f
@@ -75,7 +75,7 @@ jobs:
     runs-on: macos-13
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Fetch Tags
         run: git fetch --prune --tags -f
@@ -120,7 +120,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed qt5-base qt5-svg cmake base-devel git jq
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Mark Repository as Safe
         run: git config --global safe.directory "$GITHUB_WORKSPACE"
